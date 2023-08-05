@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "plaier",
+  "version": "${version}",
+  "name": "PlaierClient",
+  "description": "",
+  "authors": [],
+  "contact": {
+    "repo": "https://github.com/itsRed-v2/PlaierClient"
+  },
+  "license": "All-Rights-Reserved",
+  "icon": "assets/plaier/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "net.itsred_v2.plaier.PlaierClient"
+    ],
+    "main": [
+      "net.itsred_v2.plaier.Plaier"
+    ]
+  },
+  "mixins": [
+    "plaier.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
