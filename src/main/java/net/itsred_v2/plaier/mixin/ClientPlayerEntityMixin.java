@@ -1,8 +1,8 @@
 package net.itsred_v2.plaier.mixin;
 
-import net.itsred_v2.plaier.PlaierClient;
+import net.itsred_v2.plaier.event.EventManager;
+import net.itsred_v2.plaier.events.ChatOutputListener.ChatOutputEvent;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -15,11 +15,11 @@ public class ClientPlayerEntityMixin {
             at = @At("HEAD"),
             cancellable = true)
     public void onSendChatMessage(String message, CallbackInfo info) {
-        PlaierClient.LOGGER.info("Message sent: " + message);
+        ChatOutputEvent event = new ChatOutputEvent(message);
+        EventManager.fire(event);
 
-        if (message.startsWith("echo ")) {
+        if (event.isCancelled()) {
             info.cancel();
-            PlaierClient.MC.player.sendMessage(Text.of(message.substring(5)), false);
         }
 
     }
