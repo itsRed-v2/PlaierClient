@@ -1,23 +1,16 @@
 package net.itsred_v2.plaier.commands;
 
-import java.util.Objects;
+import java.util.List;
 
-import net.itsred_v2.plaier.PlaierClient;
-import net.itsred_v2.plaier.events.ChatOutputListener;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.text.Text;
+import net.itsred_v2.plaier.command.Command;
+import net.itsred_v2.plaier.utils.ChatUtils;
 
-public class EchoCmd implements ChatOutputListener {
+public class EchoCmd implements Command {
 
     @Override
-    public void onChatOutput(ChatOutputEvent event) {
-        String message = event.getMessage();
-        if (!message.startsWith(":echo "))
-            return;
-
-        event.cancel();
-        ClientPlayerEntity player = PlaierClient.MC.player;
-        Objects.requireNonNull(player).sendMessage(Text.of(message.substring(5)), false);
+    public void onCommand(List<String> args) {
+        String message = String.join(" ", args);
+        ChatUtils.sendMessage(message);
     }
-    
+
 }

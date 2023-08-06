@@ -14,12 +14,12 @@ public class ClientPlayerEntityMixin {
     @Inject(method = "sendChatMessage",
             at = @At("HEAD"),
             cancellable = true)
-    public void onSendChatMessage(String message, CallbackInfo info) {
+    public void onSendChatMessage(String message, CallbackInfo ci) {
         ChatOutputEvent event = new ChatOutputEvent(message);
         EventManager.fire(event);
 
         if (event.isCancelled()) {
-            info.cancel();
+            ci.cancel();
         }
 
     }

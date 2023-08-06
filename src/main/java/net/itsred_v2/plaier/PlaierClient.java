@@ -1,7 +1,7 @@
 package net.itsred_v2.plaier;
 
 import net.fabricmc.api.ClientModInitializer;
-import net.itsred_v2.plaier.commands.EchoCmd;
+import net.itsred_v2.plaier.command.CommandProcessor;
 import net.itsred_v2.plaier.event.EventManager;
 import net.itsred_v2.plaier.events.ChatOutputListener;
 import net.minecraft.client.MinecraftClient;
@@ -22,7 +22,7 @@ public class PlaierClient implements ClientModInitializer {
     public void onInitializeClient() {
         LOGGER.info("Plaier is playing !");
 
-        eventManager.add(ChatOutputListener.class, new EchoCmd());
+        eventManager.add(ChatOutputListener.class, new CommandProcessor());
     }
 
     public static EventManager getEventManager() {
