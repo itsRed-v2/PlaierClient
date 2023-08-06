@@ -5,10 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.commands.EchoCmd;
 import net.itsred_v2.plaier.commands.WalkCommand;
 import net.itsred_v2.plaier.events.ChatOutputListener;
-import net.itsred_v2.plaier.utils.ChatUtils;
 
 public class CommandProcessor implements ChatOutputListener {
 
@@ -34,7 +34,7 @@ public class CommandProcessor implements ChatOutputListener {
         Command cmd = COMMAND_MAP.get(commandName);
 
         if (cmd == null) {
-            ChatUtils.sendMessage("§cUnknown command: §6" + commandName);
+            PlaierClient.getCurrentSession().getMessenger().send("§cUnknown command: §6" + commandName);
         } else {
             cmd.onCommand(args);
         }
