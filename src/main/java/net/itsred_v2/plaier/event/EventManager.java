@@ -19,9 +19,13 @@ public class EventManager {
         @SuppressWarnings("unchecked")
         ArrayList<L> listeners = (ArrayList<L>) listenerMap.get(listenerType);
 
-        if (listeners != null && !listeners.isEmpty()) {
-            event.fire(listeners);
-        }
+        if (listeners == null || listeners.isEmpty())
+            return;
+
+        // Creating a copy of the list to avoid concurrent modification issues.
+        ArrayList<L> listenersCopy = new ArrayList<>(listeners);
+
+        event.fire(listenersCopy);
     }
 
     public <L extends Listener> void add(Class<L> type, L listener) {

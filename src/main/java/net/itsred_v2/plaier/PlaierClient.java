@@ -7,7 +7,7 @@ import net.itsred_v2.plaier.events.ChatOutputListener;
 import net.itsred_v2.plaier.events.LeaveGameSessionListener;
 import net.itsred_v2.plaier.events.StartGameSessionListener;
 import net.itsred_v2.plaier.session.Session;
-import net.itsred_v2.plaier.session.SessionManager;
+import net.itsred_v2.plaier.session.SessionLifeManager;
 import net.minecraft.client.MinecraftClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +18,7 @@ public class PlaierClient implements ClientModInitializer {
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     public static final MinecraftClient MC = MinecraftClient.getInstance();
     private static final EventManager eventManager = new EventManager();
-    private static final SessionManager sessionManager = new SessionManager();
+    private static final SessionLifeManager sessionManager = new SessionLifeManager();
 
     /**
      * Runs the mod initializer on the client environment.

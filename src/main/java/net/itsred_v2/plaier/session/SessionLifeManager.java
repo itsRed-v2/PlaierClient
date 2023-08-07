@@ -7,7 +7,7 @@ import net.itsred_v2.plaier.events.StartGameSessionListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class SessionManager implements LeaveGameSessionListener, StartGameSessionListener {
+public class SessionLifeManager implements LeaveGameSessionListener, StartGameSessionListener {
 
     private @Nullable Session session;
 
@@ -18,11 +18,15 @@ public class SessionManager implements LeaveGameSessionListener, StartGameSessio
 
     @Override
     public void onLeaveGameSession() {
+        Objects.requireNonNull(session).terminate();
         session = null;
     }
 
     public @NotNull Session getCurrentSession() {
-        return Objects.requireNonNull(session);
+        if (session == null) {
+            throw new RuntimeException("Trying to access session while null.");
+        }
+        return session;
     }
 
 }

@@ -1,4 +1,4 @@
-package net.itsred_v2.plaier.session;
+package net.itsred_v2.plaier.utils;
 
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.text.Text;

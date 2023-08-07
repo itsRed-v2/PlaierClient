@@ -7,7 +7,9 @@ import java.util.Map;
 
 import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.commands.EchoCmd;
-import net.itsred_v2.plaier.commands.WalkCommand;
+import net.itsred_v2.plaier.commands.LookAtCmd;
+import net.itsred_v2.plaier.commands.StopTaskCmd;
+import net.itsred_v2.plaier.commands.WalkCmd;
 import net.itsred_v2.plaier.events.ChatOutputListener;
 
 public class CommandProcessor implements ChatOutputListener {
@@ -16,7 +18,9 @@ public class CommandProcessor implements ChatOutputListener {
     private static final Map<String, Command> COMMAND_MAP = new HashMap<>();
     static {
         COMMAND_MAP.put("echo", new EchoCmd());
-        COMMAND_MAP.put("walk", new WalkCommand());
+        COMMAND_MAP.put("walk", new WalkCmd());
+        COMMAND_MAP.put("stoptask", new StopTaskCmd());
+        COMMAND_MAP.put("lookat", new LookAtCmd());
     }
 
     @Override
