@@ -14,9 +14,6 @@
   "entrypoints": {
     "client": [
       "net.itsred_v2.plaier.PlaierClient"
-    ],
-    "main": [
-      "net.itsred_v2.plaier.Plaier"
     ]
   },
   "mixins": [
