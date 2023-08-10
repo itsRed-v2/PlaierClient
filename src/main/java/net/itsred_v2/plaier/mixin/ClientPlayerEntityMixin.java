@@ -13,8 +13,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class ClientPlayerEntityMixin {
 
     @Inject(method = "sendChatMessage",
-        at = @At("HEAD"),
-        cancellable = true)
+            at = @At("HEAD"),
+            cancellable = true)
     public void onSendChatMessage(String message, CallbackInfo ci) {
         ChatOutputEvent event = new ChatOutputEvent(message);
         EventManager.fire(event);
