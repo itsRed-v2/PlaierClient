@@ -19,35 +19,59 @@ public abstract class PathFinder {
         else return Integer.compare(n1.getHcost(), n2.getHcost());
     });
 
-    @SuppressWarnings("FieldCanBeLocal")
     private final Set<BlockPos> CLOSED = new HashSet<>();
+    private Node current;
+    private boolean started = false;
+    private boolean done = false;
+    private boolean shouldStop = false;
+    private PathFinderResult result;
 
     public final BlockPos start;
     public final BlockPos goal;
 
-    private boolean done = false;
+
     @Nullable
     private List<BlockPos> path;
 
     public PathFinder(BlockPos start, BlockPos goal) {
         this.start = start;
         this.goal = goal;
+    }
+
+    public void start() {
+        if (started) return;
+        started = true;
         process();
     }
 
     private void process() {
+        if (!isPassable(start)) {
+            doneWithResult(PathFinderResult.INVALID_START);
+            return;
+        }
+
         Node startNode = new Node(null, start);
         OPEN.add(startNode);
 
         for (int i = 0; i < MAX_ITERATIONS; i++) {
-            Node current = OPEN.pollFirst(); // get the best opened node
+            if (shouldStop) {
+                doneWithResult(PathFinderResult.STOPPED);
+                return;
+            }
+
+            if (!isPassable(goal)) { // rechecking at each iteration in case terrain changes
+                doneWithResult(PathFinderResult.INVALID_GOAL);
+                return;
+            }
+
+            current = OPEN.pollFirst(); // get the best opened node
             // TODO: handle if OPEN is empty
             CLOSED.add(current.getPos());
 
             if (current.getPos().equals(goal)) {
-                generatePath(current);
-                done = true;
-                break;
+                path = generatePath(current);
+                doneWithResult(PathFinderResult.FOUND);
+                return;
             }
 
             for (BlockPos neighborPos : getValidNeighbors(current)) {
@@ -72,6 +96,8 @@ public abstract class PathFinder {
                 }
             }
         }
+
+        // TODO: handle out of iterations
     }
 
     private @Nullable Node getOpenNodeAt(BlockPos pos) {
@@ -88,21 +114,36 @@ public abstract class PathFinder {
         node.setHcost(calculateHcost(node));
     }
 
+    private void doneWithResult(PathFinderResult result) {
+        done = true;
+        this.result = result;
+    }
+
     public abstract int calculateHcost(Node node);
 
     public abstract int calculateGcost(Node node);
 
     public abstract BlockPos[] getValidNeighbors(Node node);
 
+    public abstract boolean isPassable(BlockPos pos);
+
     public boolean isDone() {
         return done;
+    }
+
+    public @Nullable PathFinderResult getResult() {
+        return result;
+    }
+
+    public void stop() {
+        this.shouldStop = true;
     }
 
     public @Nullable List<BlockPos> getPath() {
         return path;
     }
 
-    public void generatePath(Node finalNode) {
+    private List<BlockPos> generatePath(Node finalNode) {
         List<BlockPos> path = new ArrayList<>();
         Node currentNode = finalNode;
 
@@ -111,7 +152,11 @@ public abstract class PathFinder {
             currentNode = currentNode.getParent();
         }
 
-        this.path = path;
+        return path;
     }
-    
+
+    public List<BlockPos> generateUnfinishedPath() {
+        return generatePath(current);
+    }
+
 }

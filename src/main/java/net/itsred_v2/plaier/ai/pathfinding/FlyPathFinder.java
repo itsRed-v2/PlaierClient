@@ -41,9 +41,12 @@ public class FlyPathFinder extends PathFinder {
         neighbors.add(pos.east());
         neighbors.add(pos.west());
         return neighbors;
+
+        // TODO: handle unloaded / out of world positions
     }
 
-    private boolean isPassable(BlockPos pos) {
+    @Override
+    public boolean isPassable(BlockPos pos) {
         return isBlockTraversable(pos) && isBlockTraversable(pos.up());
     }
 

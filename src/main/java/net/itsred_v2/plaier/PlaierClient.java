@@ -1,11 +1,13 @@
 package net.itsred_v2.plaier;
 
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.itsred_v2.plaier.command.CommandProcessor;
 import net.itsred_v2.plaier.event.EventManager;
 import net.itsred_v2.plaier.events.ChatOutputListener;
 import net.itsred_v2.plaier.events.LeaveGameSessionListener;
 import net.itsred_v2.plaier.events.StartGameSessionListener;
+import net.itsred_v2.plaier.events.BeforeDebugRenderListener.BeforeDebugRenderEvent;
 import net.itsred_v2.plaier.session.Session;
 import net.itsred_v2.plaier.session.SessionLifeManager;
 import net.minecraft.client.MinecraftClient;
@@ -26,6 +28,8 @@ public class PlaierClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         LOGGER.info("Plaier is playing !");
+
+        WorldRenderEvents.BEFORE_DEBUG_RENDER.register(context -> EventManager.fire(new BeforeDebugRenderEvent(context)));
 
         eventManager.add(ChatOutputListener.class, new CommandProcessor());
         eventManager.add(StartGameSessionListener.class, sessionManager);

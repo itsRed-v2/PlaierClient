@@ -8,6 +8,7 @@ import java.util.Map;
 import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.commands.EchoCmd;
 import net.itsred_v2.plaier.commands.LookAtCmd;
+import net.itsred_v2.plaier.commands.PathFindCmd;
 import net.itsred_v2.plaier.commands.StopTaskCmd;
 import net.itsred_v2.plaier.commands.WalkCmd;
 import net.itsred_v2.plaier.events.ChatOutputListener;
@@ -21,6 +22,7 @@ public class CommandProcessor implements ChatOutputListener {
         COMMAND_MAP.put("walk", new WalkCmd());
         COMMAND_MAP.put("stoptask", new StopTaskCmd());
         COMMAND_MAP.put("lookat", new LookAtCmd());
+        COMMAND_MAP.put("path", new PathFindCmd());
     }
 
     @Override

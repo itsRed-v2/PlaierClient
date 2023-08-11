@@ -7,6 +7,7 @@ import net.itsred_v2.plaier.task.TaskLifeManager;
 import net.itsred_v2.plaier.utils.Messenger;
 import net.itsred_v2.plaier.utils.control.RotationHelper;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.world.ClientWorld;
 import org.jetbrains.annotations.NotNull;
 
 public class Session {
@@ -24,7 +25,14 @@ public class Session {
 
     @NotNull
     public ClientPlayerEntity getPlayer() {
-        return Objects.requireNonNull(PlaierClient.MC.player); // player cannot not be null during game
+        // player cannot not be null during game
+        return Objects.requireNonNull(PlaierClient.MC.player);
+    }
+
+    @NotNull
+    public ClientWorld getWorld() {
+        // world cannot be null during game
+        return Objects.requireNonNull(PlaierClient.MC.world);
     }
 
     public Messenger getMessenger() {
