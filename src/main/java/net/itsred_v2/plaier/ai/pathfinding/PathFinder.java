@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import net.itsred_v2.plaier.PlaierClient;
+import net.itsred_v2.plaier.utils.BlockHelper;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,12 +61,20 @@ public abstract class PathFinder {
                 return;
             }
 
-            if (!isPassable(goal)) { // rechecking at each iteration in case terrain changes
+            // rechecking goal at each iteration in case terrain changes
+            BlockHelper blockHelper = PlaierClient.getCurrentSession().getBlockHelper();
+            if (blockHelper.isUnloaded(goal)) {
+                doneWithResult(PathFinderResult.UNLOADED_GOAL);
+                return;
+            }
+            if (!isPassable(goal)) {
                 doneWithResult(PathFinderResult.INVALID_GOAL);
                 return;
             }
 
-            current = OPEN.pollFirst(); // get the best opened node
+//            current = OPEN.pollFirst(); // get the best opened node
+            current = getBestOpenedNode();
+            OPEN.remove(current);
             // TODO: handle if OPEN is empty
             CLOSED.add(current.getPos());
 
@@ -88,16 +98,18 @@ public abstract class PathFinder {
                     int newFcost = newNode.getFcost();
 
                     if (newFcost < previousFcost) {
-                        // changing the parent is equivalent to replacing the node
-                        previousNode.setParent(current);
-                        // after changing the parent we need to recalculate Fcost
-                        computeFcost(previousNode);
+                        OPEN.remove(previousNode);
+                        OPEN.add(newNode);
+//                        // changing the parent is equivalent to replacing the node
+//                        previousNode.setParent(current);
+//                        // after changing the parent we need to recalculate Fcost
+//                        computeFcost(previousNode);
                     }
                 }
             }
         }
 
-        // TODO: handle out of iterations
+        doneWithResult(PathFinderResult.REACHED_ITERATION_LIMIT);
     }
 
     private @Nullable Node getOpenNodeAt(BlockPos pos) {
@@ -117,6 +129,21 @@ public abstract class PathFinder {
     private void doneWithResult(PathFinderResult result) {
         done = true;
         this.result = result;
+
+        PlaierClient.LOGGER.info("OPEN set size: " + OPEN.size());
+        PlaierClient.LOGGER.info("CLOSED set size: " + CLOSED.size());
+        path = generateUnfinishedPath();
+        PlaierClient.LOGGER.info("PATH size: " + path.size());
+    }
+
+    private Node getBestOpenedNode() {
+        Node bestNode = OPEN.last();
+        for (Node n : OPEN) {
+            if (n.getFcost() < bestNode.getFcost() || (n.getFcost() == bestNode.getFcost() && n.getHcost() < bestNode.getHcost())) {
+                bestNode = n;
+            }
+        }
+        return bestNode;
     }
 
     public abstract int calculateHcost(Node node);

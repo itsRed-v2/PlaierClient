@@ -11,7 +11,6 @@ import net.itsred_v2.plaier.rendering.PolylineRenderer;
 import net.itsred_v2.plaier.session.Session;
 import net.itsred_v2.plaier.task.Task;
 import net.itsred_v2.plaier.utils.Messenger;
-import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
@@ -42,13 +41,18 @@ public class PathFindTask implements Task, UpdateListener {
         Session session = PlaierClient.getCurrentSession();
         Messenger messenger = session.getMessenger();
         BlockPos start = session.getPlayer().getBlockPos();
-        ClientWorld world = session.getWorld();
 
-        pathFinder = new FlyPathFinder(start, goal, world);
+        pathFinder = new FlyPathFinder(start, goal, session);
 
         messenger.send("Searching...");
 
-        new Thread(() -> pathFinder.start()).start();
+//        new Thread(() -> {
+//            try {
+                pathFinder.start();
+//            } catch (Exception e) {
+//                PlaierClient.LOGGER.info(e.getMessage());
+//            }
+//        }).start();
     }
 
     @Override
@@ -92,12 +96,20 @@ public class PathFindTask implements Task, UpdateListener {
                 terminate();
             }
             case INVALID_GOAL -> {
-                messenger.send("§cError: §fInaccessible ending position.");
+                messenger.send("§cError: §fInaccessible goal position.");
+                terminate();
+            }
+            case UNLOADED_GOAL -> {
+                messenger.send("§cError: §fGoal position is unloaded.");
                 terminate();
             }
             case FOUND -> {
                 renderPath(Objects.requireNonNull(pathFinder.getPath()));
                 messenger.send("§aPath was found.");
+            }
+            case REACHED_ITERATION_LIMIT -> {
+                messenger.send("§cReached iteration limit: could not find path.");
+//                terminate();
             }
         }
     }

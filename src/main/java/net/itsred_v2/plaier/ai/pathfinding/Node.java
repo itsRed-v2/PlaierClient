@@ -1,5 +1,7 @@
 package net.itsred_v2.plaier.ai.pathfinding;
 
+import java.util.Objects;
+
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,9 +58,9 @@ public class Node {
     }
 
     // TODO: check if adding hashCode makes things faster
-//    @Override
-//    public int hashCode() {
-//        return Objects.hash(pos);
-//    }
+    @Override
+    public int hashCode() {
+        return Objects.hash(pos);
+    }
 
 }
