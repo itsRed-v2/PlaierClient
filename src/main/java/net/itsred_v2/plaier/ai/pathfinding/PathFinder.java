@@ -1,6 +1,7 @@
 package net.itsred_v2.plaier.ai.pathfinding;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -20,6 +21,7 @@ public abstract class PathFinder {
     private boolean started = false;
     private boolean done = false;
     private PathFinderResult result;
+    private long calculationTime = -1;
     private boolean shouldStop = false;
 
     public final BlockPos start;
@@ -37,14 +39,20 @@ public abstract class PathFinder {
         if (started) return;
         started = true;
 
+        long startTime = new Date().getTime();
+
         this.result = process();
         done = true;
+
+        long endTime = new Date().getTime();
+        this.calculationTime = endTime - startTime;
 
         // Debug
         PlaierClient.LOGGER.info("OPEN set size: " + OPEN.size());
         PlaierClient.LOGGER.info("CLOSED set size: " + CLOSED.size());
         path = traceCurrentPath();
         PlaierClient.LOGGER.info("PATH size: " + path.size());
+        PlaierClient.LOGGER.info("Calculation time: " + calculationTime + " ms");
     }
 
     private PathFinderResult process() {
@@ -115,6 +123,10 @@ public abstract class PathFinder {
 
     public @Nullable PathFinderResult getResult() {
         return result;
+    }
+
+    public long getCalculationTime() {
+        return calculationTime;
     }
 
     public void stop() {

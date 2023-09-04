@@ -96,7 +96,7 @@ public class PathFindTask implements Task, UpdateListener {
         switch (result) {
             case FOUND -> {
                 renderPath(pathFinder.traceCurrentPath());
-                messenger.send("§aPath found.");
+                messenger.send("§aPath found in %d ms.".formatted(pathFinder.getCalculationTime()));
             }
             case INVALID_START -> {
                 messenger.send("§cError: §fInaccessible starting position.");
