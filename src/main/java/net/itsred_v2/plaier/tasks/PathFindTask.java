@@ -5,6 +5,7 @@ import java.util.Objects;
 
 import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.ai.pathfinding.FlyPathFinder;
+import net.itsred_v2.plaier.ai.pathfinding.PathFinder;
 import net.itsred_v2.plaier.ai.pathfinding.PathFinderResult;
 import net.itsred_v2.plaier.events.UpdateListener;
 import net.itsred_v2.plaier.rendering.PolylineRenderer;
@@ -17,7 +18,7 @@ import net.minecraft.util.math.Vec3d;
 public class PathFindTask implements Task, UpdateListener {
 
     private PolylineRenderer pathRenderer;
-    private FlyPathFinder pathFinder;
+    private PathFinder pathFinder;
     private boolean running = false;
     private boolean pathFinderDone = false;
     private boolean done = false;
@@ -46,13 +47,14 @@ public class PathFindTask implements Task, UpdateListener {
 
         messenger.send("Searching...");
 
-//        new Thread(() -> {
-//            try {
+        new Thread(() -> {
+            try {
                 pathFinder.start();
-//            } catch (Exception e) {
-//                PlaierClient.LOGGER.info(e.getMessage());
-//            }
-//        }).start();
+            } catch (Exception e) {
+                PlaierClient.LOGGER.error(e.getMessage());
+                messenger.send("§cAn error occurred in the pathfinder algorithm.");
+            }
+        }).start();
     }
 
     @Override
@@ -66,7 +68,8 @@ public class PathFindTask implements Task, UpdateListener {
         if (!pathFinder.isDone())
             pathFinder.stop();
 
-        if (!done) done = true; // so the sessionManager can clear the task
+        if (!done)
+            done = true; // so the sessionManager can clear the task
     }
 
     @Override
@@ -81,7 +84,7 @@ public class PathFindTask implements Task, UpdateListener {
                 pathFinderDone = true;
                 onPathFinderDone();
             } else {
-                renderPath(pathFinder.generateUnfinishedPath());
+                renderPath(pathFinder.traceCurrentPath());
             }
         }
     }
@@ -91,6 +94,10 @@ public class PathFindTask implements Task, UpdateListener {
 
         PathFinderResult result = Objects.requireNonNull(pathFinder.getResult());
         switch (result) {
+            case FOUND -> {
+                renderPath(pathFinder.traceCurrentPath());
+                messenger.send("§aPath found.");
+            }
             case INVALID_START -> {
                 messenger.send("§cError: §fInaccessible starting position.");
                 terminate();
@@ -99,17 +106,13 @@ public class PathFindTask implements Task, UpdateListener {
                 messenger.send("§cError: §fInaccessible goal position.");
                 terminate();
             }
-            case UNLOADED_GOAL -> {
-                messenger.send("§cError: §fGoal position is unloaded.");
+            case REACHED_ITERATION_LIMIT -> {
+                messenger.send("§cReached iteration limit: could not find a path to the goal. It may be unreachable or too far away.");
                 terminate();
             }
-            case FOUND -> {
-                renderPath(Objects.requireNonNull(pathFinder.getPath()));
-                messenger.send("§aPath was found.");
-            }
-            case REACHED_ITERATION_LIMIT -> {
-                messenger.send("§cReached iteration limit: could not find path.");
-//                terminate();
+            case TRAPPED -> {
+                messenger.send("§cThe goal is unreachable. The pathfinder ran out of paths to explore.");
+                terminate();
             }
         }
     }

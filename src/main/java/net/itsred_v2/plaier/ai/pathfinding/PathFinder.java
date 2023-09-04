@@ -4,10 +4,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 
 import net.itsred_v2.plaier.PlaierClient;
-import net.itsred_v2.plaier.utils.BlockHelper;
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,22 +13,17 @@ public abstract class PathFinder {
 
     private static final int MAX_ITERATIONS = 10000;
 
-    private final TreeSet<Node> OPEN = new TreeSet<>((n1, n2) -> {
-        if (n1.getFcost() > n2.getFcost()) return 1;
-        else if (n1.getFcost() < n2.getFcost()) return -1;
-        else return Integer.compare(n1.getHcost(), n2.getHcost());
-    });
-
+    private final NodeList OPEN = new NodeList();
     private final Set<BlockPos> CLOSED = new HashSet<>();
+
     private Node current;
     private boolean started = false;
     private boolean done = false;
-    private boolean shouldStop = false;
     private PathFinderResult result;
+    private boolean shouldStop = false;
 
     public final BlockPos start;
     public final BlockPos goal;
-
 
     @Nullable
     private List<BlockPos> path;
@@ -43,114 +36,76 @@ public abstract class PathFinder {
     public void start() {
         if (started) return;
         started = true;
-        process();
+
+        this.result = process();
+        done = true;
+
+        // Debug
+        PlaierClient.LOGGER.info("OPEN set size: " + OPEN.size());
+        PlaierClient.LOGGER.info("CLOSED set size: " + CLOSED.size());
+        path = traceCurrentPath();
+        PlaierClient.LOGGER.info("PATH size: " + path.size());
     }
 
-    private void process() {
+    private PathFinderResult process() {
         if (!isPassable(start)) {
-            doneWithResult(PathFinderResult.INVALID_START);
-            return;
+            return PathFinderResult.INVALID_START;
         }
 
-        Node startNode = new Node(null, start);
+        Node startNode = createNode(start, null);
         OPEN.add(startNode);
 
         for (int i = 0; i < MAX_ITERATIONS; i++) {
-            if (shouldStop) {
-                doneWithResult(PathFinderResult.STOPPED);
-                return;
-            }
+            if (shouldStop)
+                return PathFinderResult.STOPPED;
 
             // rechecking goal at each iteration in case terrain changes
-            BlockHelper blockHelper = PlaierClient.getCurrentSession().getBlockHelper();
-            if (blockHelper.isUnloaded(goal)) {
-                doneWithResult(PathFinderResult.UNLOADED_GOAL);
-                return;
-            }
-            if (!isPassable(goal)) {
-                doneWithResult(PathFinderResult.INVALID_GOAL);
-                return;
-            }
+            if (!isPassable(goal))
+                return PathFinderResult.INVALID_GOAL;
 
-//            current = OPEN.pollFirst(); // get the best opened node
-            current = getBestOpenedNode();
-            OPEN.remove(current);
             // TODO: handle if OPEN is empty
+            if (OPEN.isEmpty()) {
+                return PathFinderResult.TRAPPED;
+            }
+            current = OPEN.getBestNode();
+            OPEN.remove(current);
             CLOSED.add(current.getPos());
 
             if (current.getPos().equals(goal)) {
-                path = generatePath(current);
-                doneWithResult(PathFinderResult.FOUND);
-                return;
+                path = traceCurrentPath();
+                return PathFinderResult.FOUND;
             }
 
             for (BlockPos neighborPos : getValidNeighbors(current)) {
                 if (CLOSED.contains(neighborPos)) continue;
 
-                Node previousNode = getOpenNodeAt(neighborPos);
-                Node newNode = new Node(current, neighborPos);
-                computeFcost(newNode);
+                Node previousNode = OPEN.getNodeAt(neighborPos);
+                Node newNode = createNode(neighborPos, current);
 
                 if (previousNode == null) {
                     OPEN.add(newNode);
-                } else {
-                    int previousFcost = previousNode.getFcost();
-                    int newFcost = newNode.getFcost();
-
-                    if (newFcost < previousFcost) {
-                        OPEN.remove(previousNode);
-                        OPEN.add(newNode);
-//                        // changing the parent is equivalent to replacing the node
-//                        previousNode.setParent(current);
-//                        // after changing the parent we need to recalculate Fcost
-//                        computeFcost(previousNode);
-                    }
+                }
+                else if (newNode.getFcost() < previousNode.getFcost()) {
+                    OPEN.remove(previousNode);
+                    OPEN.add(newNode);
                 }
             }
         }
 
-        doneWithResult(PathFinderResult.REACHED_ITERATION_LIMIT);
+        return PathFinderResult.REACHED_ITERATION_LIMIT;
     }
 
-    private @Nullable Node getOpenNodeAt(BlockPos pos) {
-        for (Node node : OPEN) {
-            if (node.getPos().equals(pos)) {
-                return node;
-            }
-        }
-        return null;
+    private Node createNode(BlockPos pos, @Nullable Node parent) {
+        int Gcost = calculateGcost(pos, parent);
+        int Hcost = calculateHcost(pos);
+        return new Node(parent, pos, Gcost, Hcost);
     }
 
-    private void computeFcost(Node node) {
-        node.setGcost(calculateGcost(node));
-        node.setHcost(calculateHcost(node));
-    }
+    public abstract int calculateHcost(BlockPos pos);
 
-    private void doneWithResult(PathFinderResult result) {
-        done = true;
-        this.result = result;
+    public abstract int calculateGcost(BlockPos pos, @Nullable Node parent);
 
-        PlaierClient.LOGGER.info("OPEN set size: " + OPEN.size());
-        PlaierClient.LOGGER.info("CLOSED set size: " + CLOSED.size());
-        path = generateUnfinishedPath();
-        PlaierClient.LOGGER.info("PATH size: " + path.size());
-    }
-
-    private Node getBestOpenedNode() {
-        Node bestNode = OPEN.last();
-        for (Node n : OPEN) {
-            if (n.getFcost() < bestNode.getFcost() || (n.getFcost() == bestNode.getFcost() && n.getHcost() < bestNode.getHcost())) {
-                bestNode = n;
-            }
-        }
-        return bestNode;
-    }
-
-    public abstract int calculateHcost(Node node);
-
-    public abstract int calculateGcost(Node node);
-
-    public abstract BlockPos[] getValidNeighbors(Node node);
+    public abstract List<BlockPos> getValidNeighbors(Node node);
 
     public abstract boolean isPassable(BlockPos pos);
 
@@ -166,13 +121,9 @@ public abstract class PathFinder {
         this.shouldStop = true;
     }
 
-    public @Nullable List<BlockPos> getPath() {
-        return path;
-    }
-
-    private List<BlockPos> generatePath(Node finalNode) {
+    public List<BlockPos> traceCurrentPath() {
         List<BlockPos> path = new ArrayList<>();
-        Node currentNode = finalNode;
+        Node currentNode = current;
 
         while (currentNode != null) {
             path.add(currentNode.getPos());
@@ -180,10 +131,6 @@ public abstract class PathFinder {
         }
 
         return path;
-    }
-
-    public List<BlockPos> generateUnfinishedPath() {
-        return generatePath(current);
     }
 
 }

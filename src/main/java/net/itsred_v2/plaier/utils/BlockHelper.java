@@ -15,11 +15,11 @@ public class BlockHelper {
     }
 
     public @Nullable BlockState getBlockState(BlockPos pos) {
-        if (isInaccessible(pos)) return null;
+        if (isOutOfWorld(pos)) return null;
         return world.getBlockState(pos);
     }
 
-    public boolean isInaccessible(BlockPos pos) {
+    public boolean isOutOfWorld(BlockPos pos) {
         return isUnloaded(pos) || isOutOfHeightLimit(pos);
     }
 
