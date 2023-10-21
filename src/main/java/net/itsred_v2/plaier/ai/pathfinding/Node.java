@@ -7,25 +7,25 @@ public class Node {
 
     private final BlockPos pos;
     private final @Nullable Node parent;
-    private final int Hcost;
-    private final int Gcost;
+    private final double Hcost;
+    private final double Gcost;
 
-    public Node(@Nullable Node parent, BlockPos pos, int Gcost, int Hcost) {
+    public Node(@Nullable Node parent, BlockPos pos, double Gcost, double Hcost) {
         this.parent = parent;
         this.pos = pos;
         this.Gcost = Gcost;
         this.Hcost = Hcost;
     }
 
-    public int getFcost() {
+    public double getFcost() {
         return Hcost + Gcost;
     }
 
-    public int getHcost() {
+    public double getHcost() {
         return Hcost;
     }
 
-    public int getGcost() {
+    public double getGcost() {
         return Gcost;
     }
 

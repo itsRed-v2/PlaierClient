@@ -1,33 +1,44 @@
 package net.itsred_v2.plaier.ai.pathfinding;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
 
-public class NodeList {
+public class NodeSet {
 
-    private final List<Node> nodeList = new ArrayList<>();
-
-    public void add(Node node) {
-        nodeList.add(node);
-    }
+    private final Set<Node> nodeSet = new HashSet<>();
 
     public void remove(Node node) {
-        nodeList.remove(node);
+        nodeSet.remove(node);
     }
 
     public int size() {
-        return nodeList.size();
+        return nodeSet.size();
     }
 
     public boolean isEmpty() {
-        return nodeList.isEmpty();
+        return nodeSet.isEmpty();
     }
 
-    public @Nullable Node getNodeAt(BlockPos pos) {
-        for (Node node : nodeList) {
+    public void addIfBetter(Node newNode) {
+        Node previousNode = getNodeAt(newNode.getPos());
+
+        if (previousNode == null) {
+            nodeSet.add(newNode);
+        }
+        else if (newNode.getFcost() < previousNode.getFcost()) {
+            nodeSet.remove(previousNode);
+            nodeSet.add(newNode);
+        }
+    }
+
+    // TODO: optimise
+    private @Nullable Node getNodeAt(BlockPos pos) {
+        for (Node node : nodeSet) {
             if (node.getPos().equals(pos)) {
                 return node;
             }
@@ -35,15 +46,16 @@ public class NodeList {
         return null;
     }
 
+    // TODO: optimise
     public Node getBestNode() {
         List<Node> bestNodes = new ArrayList<>();
-        for (Node n : nodeList) {
+        for (Node n : nodeSet) {
             if (bestNodes.isEmpty()) {
                 bestNodes.add(n);
             }
             else {
-                int bestFcost = bestNodes.get(0).getFcost();
-                int bestHcost = bestNodes.get(0).getHcost();
+                double bestFcost = bestNodes.get(0).getFcost();
+                double bestHcost = bestNodes.get(0).getHcost();
 
                 if (n.getFcost() == bestFcost && n.getHcost() == bestHcost) {
                     bestNodes.add(n);

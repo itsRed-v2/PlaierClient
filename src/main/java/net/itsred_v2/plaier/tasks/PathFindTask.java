@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Objects;
 
 import net.itsred_v2.plaier.PlaierClient;
-import net.itsred_v2.plaier.ai.pathfinding.FlyPathFinder;
 import net.itsred_v2.plaier.ai.pathfinding.PathFinder;
 import net.itsred_v2.plaier.ai.pathfinding.PathFinderResult;
 import net.itsred_v2.plaier.events.UpdateListener;
@@ -13,20 +12,19 @@ import net.itsred_v2.plaier.session.Session;
 import net.itsred_v2.plaier.task.Task;
 import net.itsred_v2.plaier.utils.Messenger;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ColorHelper;
 import net.minecraft.util.math.Vec3d;
 
 public class PathFindTask implements Task, UpdateListener {
 
     private PolylineRenderer pathRenderer;
-    private PathFinder pathFinder;
+    private final PathFinder pathFinder;
     private boolean running = false;
     private boolean pathFinderDone = false;
     private boolean done = false;
 
-    private final BlockPos goal;
-
-    public PathFindTask(BlockPos goal) {
-        this.goal = goal;
+    public PathFindTask(PathFinder pathFinder) {
+        this.pathFinder = pathFinder;
     }
 
     @Override
@@ -36,14 +34,11 @@ public class PathFindTask implements Task, UpdateListener {
 
         PlaierClient.getEventManager().add(UpdateListener.class, this);
 
-        pathRenderer = new PolylineRenderer();
+        pathRenderer = new PolylineRenderer(ColorHelper.Argb.getArgb(255, 255, 0 ,0));
         pathRenderer.enable();
 
         Session session = PlaierClient.getCurrentSession();
         Messenger messenger = session.getMessenger();
-        BlockPos start = session.getPlayer().getBlockPos();
-
-        pathFinder = new FlyPathFinder(start, goal, session);
 
         messenger.send("Searching...");
 

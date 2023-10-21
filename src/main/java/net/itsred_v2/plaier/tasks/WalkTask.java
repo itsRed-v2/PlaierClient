@@ -61,7 +61,7 @@ public class WalkTask implements Task, UpdateListener {
         session.getRotationHelper().facePosHorizontally(goalBlockCenter);
 
         MovementUtils.lockControls();
-        MovementUtils.setMoveForward(true);
+        MovementUtils.forward(true);
     }
 
 }

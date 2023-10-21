@@ -16,7 +16,7 @@ public class MovementUtils {
 
     // TODO: something to prevent autojump
 
-    public static void setMoveForward(boolean bool) {
+    public static void forward(boolean bool) {
         MC.options.forwardKey.setPressed(bool);
     }
 

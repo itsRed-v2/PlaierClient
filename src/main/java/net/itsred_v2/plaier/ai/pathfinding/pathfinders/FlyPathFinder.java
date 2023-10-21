@@ -1,15 +1,16 @@
-package net.itsred_v2.plaier.ai.pathfinding;
+package net.itsred_v2.plaier.ai.pathfinding.pathfinders;
 
 import java.util.List;
 import java.util.stream.Stream;
 
+import net.itsred_v2.plaier.ai.pathfinding.Node;
+import net.itsred_v2.plaier.ai.pathfinding.PathFinder;
 import net.itsred_v2.plaier.session.Session;
 import net.itsred_v2.plaier.utils.BlockHelper;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.shape.VoxelShape;
-import org.jetbrains.annotations.Nullable;
 
 public class FlyPathFinder extends PathFinder {
 
@@ -22,22 +23,21 @@ public class FlyPathFinder extends PathFinder {
         this.blockHelper = session.getBlockHelper();
     }
 
-    @Override
-    public int calculateGcost(BlockPos pos, @Nullable Node parent) {
-        if (parent == null) return 0;
-        return parent.getGcost() + 1;
-    }
-
-    @Override
-    public int calculateHcost(BlockPos pos) {
+    public double calculateHcost(BlockPos pos) {
         return pos.getManhattanDistance(this.goal);
     }
 
     @Override
-    public List<BlockPos> getValidNeighbors(Node node) {
-        BlockPos pos = node.getPos();
+    public Node createStartingNode() {
+        return new Node(null, this.start, 0, calculateHcost(this.start));
+    }
+
+    @Override
+    public List<Node> getValidNeighbors(Node parentNode) {
+        BlockPos pos = parentNode.getPos();
         return Stream.of(pos.north(), pos.south(), pos.east(), pos.west(), pos.up(), pos.down())
                 .filter((this::isPassable))
+                .map(newPos -> new Node(parentNode, newPos, parentNode.getGcost() + 1, calculateHcost(newPos)))
                 .toList();
     }
 

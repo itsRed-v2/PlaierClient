@@ -15,10 +15,14 @@ import net.minecraft.util.math.Vec3d;
 
 public class PolylineRenderer implements BeforeDebugRenderListener {
 
-    public int color = 0xFF00FFFF;
+    public int color;
     public List<Vec3d> vertices = new ArrayList<>();
 
     private boolean enabled = false;
+
+    public PolylineRenderer(int color) {
+        this.color = color;
+    }
 
     public void enable() {
         if (enabled) return;
