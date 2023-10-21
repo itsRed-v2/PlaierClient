@@ -4,12 +4,15 @@ import java.util.List;
 import java.util.Objects;
 
 import net.itsred_v2.plaier.PlaierClient;
+import net.itsred_v2.plaier.ai.pathfinding.Node;
 import net.itsred_v2.plaier.ai.pathfinding.PathFinder;
 import net.itsred_v2.plaier.ai.pathfinding.PathFinderResult;
+import net.itsred_v2.plaier.ai.pathfinding.pathfinders.WalkPathFinder;
 import net.itsred_v2.plaier.events.UpdateListener;
 import net.itsred_v2.plaier.rendering.PolylineRenderer;
 import net.itsred_v2.plaier.session.Session;
 import net.itsred_v2.plaier.task.Task;
+import net.itsred_v2.plaier.tasks.pathProcessing.WalkPathProcessor;
 import net.itsred_v2.plaier.utils.Messenger;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ColorHelper;
@@ -19,6 +22,7 @@ public class PathFindTask implements Task, UpdateListener {
 
     private PolylineRenderer pathRenderer;
     private final PathFinder pathFinder;
+    private WalkPathProcessor pathProcessor;
     private boolean running = false;
     private boolean pathFinderDone = false;
     private boolean done = false;
@@ -34,7 +38,7 @@ public class PathFindTask implements Task, UpdateListener {
 
         PlaierClient.getEventManager().add(UpdateListener.class, this);
 
-        pathRenderer = new PolylineRenderer(ColorHelper.Argb.getArgb(255, 255, 0 ,0));
+        pathRenderer = new PolylineRenderer(ColorHelper.Argb.getArgb(255, 255, 100, 0));
         pathRenderer.enable();
 
         Session session = PlaierClient.getCurrentSession();
@@ -63,8 +67,11 @@ public class PathFindTask implements Task, UpdateListener {
         if (!pathFinder.isDone())
             pathFinder.stop();
 
-        if (!done)
-            done = true; // so the sessionManager can clear the task
+        if (pathProcessor != null) {
+            pathProcessor.terminate();
+        }
+
+        done = true; // so the taskManager can clear the task
     }
 
     @Override
@@ -79,7 +86,7 @@ public class PathFindTask implements Task, UpdateListener {
                 pathFinderDone = true;
                 onPathFinderDone();
             } else {
-                renderPath(pathFinder.traceCurrentPath());
+                renderPath(pathFinder.traceCurrentPathPositions());
             }
         }
     }
@@ -90,8 +97,11 @@ public class PathFindTask implements Task, UpdateListener {
         PathFinderResult result = Objects.requireNonNull(pathFinder.getResult());
         switch (result) {
             case FOUND -> {
-                renderPath(pathFinder.traceCurrentPath());
+                renderPath(pathFinder.traceCurrentPathPositions());
                 messenger.send("§aPath found in %d ms.".formatted(pathFinder.getCalculationTime()));
+                if (pathFinder instanceof WalkPathFinder) {
+                    startPathProcessor();
+                }
             }
             case INVALID_START -> {
                 messenger.send("§cError: §fInaccessible starting position.");
@@ -116,6 +126,12 @@ public class PathFindTask implements Task, UpdateListener {
         pathRenderer.vertices = path.stream()
                 .map(blockPos -> new Vec3d(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5))
                 .toList();
+    }
+
+    private void startPathProcessor() {
+        List<Node> path = pathFinder.traceCurrentPathNodes();
+        pathProcessor = new WalkPathProcessor(path);
+        pathProcessor.start();
     }
 
 }

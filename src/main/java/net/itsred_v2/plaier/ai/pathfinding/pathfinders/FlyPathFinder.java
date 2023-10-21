@@ -36,13 +36,13 @@ public class FlyPathFinder extends PathFinder {
     public List<Node> getValidNeighbors(Node parentNode) {
         BlockPos pos = parentNode.getPos();
         return Stream.of(pos.north(), pos.south(), pos.east(), pos.west(), pos.up(), pos.down())
-                .filter((this::isPassable))
+                .filter((this::isAllowed))
                 .map(newPos -> new Node(parentNode, newPos, parentNode.getGcost() + 1, calculateHcost(newPos)))
                 .toList();
     }
 
     @Override
-    public boolean isPassable(BlockPos pos) {
+    public boolean isAllowed(BlockPos pos) {
         return isBlockTraversable(pos) && isBlockTraversable(pos.up());
     }
 

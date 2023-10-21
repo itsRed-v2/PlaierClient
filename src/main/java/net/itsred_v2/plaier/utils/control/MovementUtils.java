@@ -20,6 +20,10 @@ public class MovementUtils {
         MC.options.forwardKey.setPressed(bool);
     }
 
+    public static void setJumping(boolean bool) {
+        MC.options.jumpKey.setPressed(bool);
+    }
+
     public static KeyBinding[] getControlList() {
         return new KeyBinding[] {
                 MC.options.forwardKey,

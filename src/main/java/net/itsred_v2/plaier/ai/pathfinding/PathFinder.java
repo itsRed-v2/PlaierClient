@@ -27,9 +27,6 @@ public abstract class PathFinder {
     public final BlockPos start;
     public final BlockPos goal;
 
-    @Nullable
-    private List<BlockPos> path;
-
     public PathFinder(BlockPos start, BlockPos goal) {
         this.start = start;
         this.goal = goal;
@@ -50,13 +47,13 @@ public abstract class PathFinder {
         // Debug
         PlaierClient.LOGGER.info("OPEN set size: " + OPEN.size());
         PlaierClient.LOGGER.info("CLOSED set size: " + CLOSED.size());
-        path = traceCurrentPath();
+        List<Node> path = traceCurrentPathNodes();
         PlaierClient.LOGGER.info("PATH size: " + path.size());
         PlaierClient.LOGGER.info("Calculation time: " + calculationTime + " ms");
     }
 
     private PathFinderResult process() {
-        if (!isPassable(start)) {
+        if (!isAllowed(start)) {
             return PathFinderResult.INVALID_START;
         }
 
@@ -68,7 +65,7 @@ public abstract class PathFinder {
                 return PathFinderResult.STOPPED;
 
             // rechecking goal at each iteration in case terrain changes
-            if (!isPassable(goal))
+            if (!isAllowed(goal))
                 return PathFinderResult.INVALID_GOAL;
 
             if (OPEN.isEmpty())
@@ -78,7 +75,6 @@ public abstract class PathFinder {
             CLOSED.add(current.getPos());
 
             if (current.getPos().equals(goal)) {
-                path = traceCurrentPath();
                 return PathFinderResult.FOUND;
             }
 
@@ -95,7 +91,7 @@ public abstract class PathFinder {
 
     public abstract List<Node> getValidNeighbors(Node parentNode);
 
-    public abstract boolean isPassable(BlockPos pos);
+    public abstract boolean isAllowed(BlockPos pos);
 
     public boolean isDone() {
         return done;
@@ -113,12 +109,18 @@ public abstract class PathFinder {
         this.shouldStop = true;
     }
 
-    public List<BlockPos> traceCurrentPath() {
-        List<BlockPos> path = new ArrayList<>();
+    public List<BlockPos> traceCurrentPathPositions() {
+        return traceCurrentPathNodes().stream()
+                .map(Node::getPos)
+                .toList();
+    }
+
+    public List<Node> traceCurrentPathNodes() {
+        List<Node> path = new ArrayList<>();
         Node currentNode = current;
 
         while (currentNode != null) {
-            path.add(currentNode.getPos());
+            path.add(currentNode);
             currentNode = currentNode.getParent();
         }
 
