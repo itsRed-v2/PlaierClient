@@ -1,6 +1,7 @@
 package net.itsred_v2.plaier.ai.pathfinding;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -12,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class PathFinder {
 
-    private static final int MAX_ITERATIONS = 10000;
+    private static final int MAX_ITERATIONS = 100000;
 
     private final NodeSet OPEN = new NodeSet();
     private final Set<BlockPos> CLOSED = new HashSet<>();
@@ -123,8 +124,31 @@ public abstract class PathFinder {
             path.add(currentNode);
             currentNode = currentNode.getParent();
         }
-
+        Collections.reverse(path); // we need to reverse the path because we built it from end to start.
         return path;
+    }
+
+    public boolean isPathStillValid() {
+        List<Node> path = traceCurrentPathNodes();
+
+        for (int i = 0; i < path.size() - 1; i++) {
+            Node current = path.get(i);
+            Node next = path.get(i + 1);
+
+            if (!isConnectionStillValid(current, next))
+                return false;
+        }
+
+        return true;
+    }
+
+    private boolean isConnectionStillValid(Node parent, Node following) {
+        BlockPos followingPos = following.getPos();
+        for (Node neighbor : getValidNeighbors(parent)) {
+            if (followingPos.equals(neighbor.getPos()))
+                return true;
+        }
+        return false;
     }
 
 }

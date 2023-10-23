@@ -7,6 +7,7 @@ import net.itsred_v2.plaier.ai.pathfinding.Node;
 import net.itsred_v2.plaier.events.UpdateListener;
 import net.itsred_v2.plaier.session.Session;
 import net.itsred_v2.plaier.task.Task;
+import net.itsred_v2.plaier.task.TaskState;
 import net.itsred_v2.plaier.utils.control.MovementUtils;
 import net.itsred_v2.plaier.utils.control.RotationHelper;
 import net.minecraft.util.math.BlockPos;
@@ -15,53 +16,50 @@ import net.minecraft.util.math.Vec3d;
 
 public class WalkPathProcessor implements Task, UpdateListener {
 
-    private boolean running = false;
-    private boolean done = false;
-
+    private TaskState state = TaskState.READY;
     private final List<Node> path;
-    private int index;
+    private int currentPathIndex = 0;
 
     public WalkPathProcessor(List<Node> path) {
         this.path = path;
-        this.index = path.size() - 1; // we start at the end of the path because it is reversed
     }
 
     @Override
     public void start() {
-        if (running) throw new RuntimeException("Task started twice.");
-        running = true;
+        if (state != TaskState.READY) throw new RuntimeException("Task started twice.");
+        state = TaskState.RUNNING;
+
         PlaierClient.getEventManager().add(UpdateListener.class, this);
     }
 
     @Override
     public void terminate() {
-        if (!running) return;
-        running = false;
+        if (state != TaskState.RUNNING) return;
+        state = TaskState.DONE;
 
         PlaierClient.getEventManager().remove(UpdateListener.class, this);
         MovementUtils.lockControls(); // resetting controls
-
-        done = true;
     }
 
     @Override
     public boolean isDone() {
-        return done;
+        return state == TaskState.DONE;
     }
 
     @Override
     public void onUpdate() {
-        BlockPos nextPos = path.get(index).getPos();
+        if (state == TaskState.DONE) return;
+
+        BlockPos nextPos = path.get(currentPathIndex).getPos();
 
         if (isPlayerInBlocks(nextPos)) {
-            index--;
-            if (index < 0) {
+            currentPathIndex++;
+            if (currentPathIndex >= path.size()) {
                 terminate();
                 return;
             }
+            nextPos = path.get(currentPathIndex).getPos();
         }
-
-        nextPos = path.get(index).getPos();
 
         Session session = PlaierClient.getCurrentSession();
         RotationHelper rotationHelper = session.getRotationHelper();
@@ -81,7 +79,7 @@ public class WalkPathProcessor implements Task, UpdateListener {
         }
     }
 
-    public boolean isPlayerInBlocks(BlockPos pos) {
+    private boolean isPlayerInBlocks(BlockPos pos) {
         Box playerBox = PlaierClient.getCurrentSession().getPlayer().getBoundingBox();
         return playerBox.minX >= pos.getX()
                 && playerBox.maxX <= pos.getX() + 1
@@ -91,7 +89,7 @@ public class WalkPathProcessor implements Task, UpdateListener {
                 && playerBox.maxZ <= pos.getZ() + 1;
     }
 
-    public boolean isPlayerAboveBlock(BlockPos pos) {
+    private boolean isPlayerAboveBlock(BlockPos pos) {
         Box playerBox = PlaierClient.getCurrentSession().getPlayer().getBoundingBox();
         return playerBox.minX >= pos.getX()
                 && playerBox.maxX <= pos.getX() + 1

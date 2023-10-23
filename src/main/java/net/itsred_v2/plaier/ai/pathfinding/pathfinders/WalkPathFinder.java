@@ -151,6 +151,7 @@ public class WalkPathFinder extends PathFinder {
         return isBlockTraversable(pos) && isBlockTraversable(pos.up());
     }
 
+    // TODO: avoid fluids, trapped blocks and powder snow
     private boolean isBlockTraversable(BlockPos pos) {
         BlockState state = blockHelper.getBlockState(pos);
         if (state == null)
