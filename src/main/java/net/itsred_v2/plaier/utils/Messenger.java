@@ -14,7 +14,8 @@ public class Messenger {
         this.player = player;
     }
 
-    public void send(String message) {
+    public void send(String message, Object... formatArgs) {
+        message = message.formatted(formatArgs);
         player.sendMessage(Text.of(PREFIX + message), false);
     }
 

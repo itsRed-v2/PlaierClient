@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Objects;
 
 import net.itsred_v2.plaier.PlaierClient;
-import net.itsred_v2.plaier.ai.pathfinding.Node;
 import net.itsred_v2.plaier.ai.pathfinding.PathFinderResult;
 import net.itsred_v2.plaier.ai.pathfinding.pathfinders.WalkPathFinder;
 import net.itsred_v2.plaier.events.UpdateListener;
@@ -12,6 +11,7 @@ import net.itsred_v2.plaier.rendering.PolylineRenderer;
 import net.itsred_v2.plaier.session.Session;
 import net.itsred_v2.plaier.task.Task;
 import net.itsred_v2.plaier.task.TaskState;
+import net.itsred_v2.plaier.tasks.pathProcessing.PathProcessorResult;
 import net.itsred_v2.plaier.tasks.pathProcessing.WalkPathProcessor;
 import net.itsred_v2.plaier.utils.Messenger;
 import net.minecraft.util.math.BlockPos;
@@ -105,7 +105,7 @@ public class WalkPathFindTask implements Task, UpdateListener {
         switch (result) {
             case FOUND -> {
                 setRenderedPath(pathFinder.traceCurrentPathPositions());
-                messenger.send("§aPath found in %d ms.".formatted(pathFinder.getCalculationTime()));
+                messenger.send("Path found in %d ms.", pathFinder.getCalculationTime());
                 startPathProcessor();
             }
             case INVALID_START -> {
@@ -134,9 +134,25 @@ public class WalkPathFindTask implements Task, UpdateListener {
     }
 
     private void startPathProcessor() {
-        List<Node> path = pathFinder.traceCurrentPathNodes();
-        pathProcessor = new WalkPathProcessor(path);
+        List<BlockPos> path = pathFinder.traceCurrentPathPositions();
+        pathProcessor = new WalkPathProcessor(path, this::onPathProcessorDone);
         pathProcessor.start();
+    }
+
+    private void onPathProcessorDone(PathProcessorResult result) {
+        switch (result) {
+            case ARRIVED -> {
+                PlaierClient.getCurrentSession().getMessenger()
+                        .send("§aSuccessfully arrived at %d %d %d. Releasing controls.", goal.getX(), goal.getY(), goal.getZ());
+                terminate();
+            }
+            case OFF_PATH -> {
+                PlaierClient.getCurrentSession().getMessenger()
+                        .send("§6Player is off path: Restarting task...");
+                pathProcessor = null;
+                startPathFinding();
+            }
+        }
     }
 
     private void ensurePathValidity() {
