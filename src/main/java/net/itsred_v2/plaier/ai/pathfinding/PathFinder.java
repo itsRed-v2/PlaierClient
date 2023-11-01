@@ -128,22 +128,20 @@ public abstract class PathFinder {
         return path;
     }
 
-    public boolean isPathStillValid() {
-        List<Node> path = traceCurrentPathNodes();
-
+    public boolean isPathValid(List<Node> path) {
         for (int i = 0; i < path.size() - 1; i++) {
             Node current = path.get(i);
             Node next = path.get(i + 1);
 
-            if (!isConnectionStillValid(current, next))
+            if (!isConnectionValid(current, next))
                 return false;
         }
 
         return true;
     }
 
-    private boolean isConnectionStillValid(Node parent, Node following) {
-        BlockPos followingPos = following.getPos();
+    private boolean isConnectionValid(Node parent, Node child) {
+        BlockPos followingPos = child.getPos();
         for (Node neighbor : getValidNeighbors(parent)) {
             if (followingPos.equals(neighbor.getPos()))
                 return true;

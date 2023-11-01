@@ -93,9 +93,6 @@ public class WalkPathFindTask implements Task, UpdateListener {
                 setRenderedPath(pathFinder.traceCurrentPathPositions());
             }
         }
-        if (pathFinder.isDone()) {
-            ensurePathValidity();
-        }
     }
 
     private void onPathFinderDone() {
@@ -124,6 +121,7 @@ public class WalkPathFindTask implements Task, UpdateListener {
                 messenger.send("§cThe goal is unreachable. The pathfinder ran out of paths to explore.");
                 terminate();
             }
+            default -> {}
         }
     }
 
@@ -134,8 +132,7 @@ public class WalkPathFindTask implements Task, UpdateListener {
     }
 
     private void startPathProcessor() {
-        List<BlockPos> path = pathFinder.traceCurrentPathPositions();
-        pathProcessor = new WalkPathProcessor(path, this::onPathProcessorDone);
+        pathProcessor = new WalkPathProcessor(pathFinder, this::onPathProcessorDone);
         pathProcessor.start();
     }
 
@@ -152,18 +149,13 @@ public class WalkPathFindTask implements Task, UpdateListener {
                 pathProcessor = null;
                 startPathFinding();
             }
-        }
-    }
-
-    private void ensurePathValidity() {
-        if (!pathFinder.isPathStillValid()) {
-            Messenger messenger = PlaierClient.getCurrentSession().getMessenger();
-            messenger.send("§6The path became invalid: Restarting task...");
-
-            pathProcessor.terminate();
-            pathProcessor = null;
-
-            startPathFinding();
+            case INVALID_PATH -> {
+                PlaierClient.getCurrentSession().getMessenger()
+                        .send("§6The path became invalid: Restarting task...");
+                pathProcessor = null;
+                startPathFinding();
+            }
+            default -> {}
         }
     }
 

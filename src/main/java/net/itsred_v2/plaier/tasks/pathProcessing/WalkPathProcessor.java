@@ -3,6 +3,8 @@ package net.itsred_v2.plaier.tasks.pathProcessing;
 import java.util.List;
 
 import net.itsred_v2.plaier.PlaierClient;
+import net.itsred_v2.plaier.ai.pathfinding.Node;
+import net.itsred_v2.plaier.ai.pathfinding.pathfinders.WalkPathFinder;
 import net.itsred_v2.plaier.events.UpdateListener;
 import net.itsred_v2.plaier.session.Session;
 import net.itsred_v2.plaier.task.Task;
@@ -19,13 +21,15 @@ public class WalkPathProcessor implements Task, UpdateListener {
     private static final int MAX_TICKS_OFF_PATH = 20; // 1 second
 
     private TaskState state = TaskState.READY;
-    private final List<BlockPos> path;
+    private final WalkPathFinder pathFinder;
+    private final List<Node> path;
     private final Callback callback;
     private int currentPathIndex = 0;
     private int ticksOffPath = 0;
 
-    public WalkPathProcessor(List<BlockPos> path, Callback callback) {
-        this.path = path;
+    public WalkPathProcessor(WalkPathFinder pathFinder, Callback callback) {
+        this.pathFinder = pathFinder;
+        this.path = pathFinder.traceCurrentPathNodes();
         this.callback = callback;
     }
 
@@ -66,7 +70,7 @@ public class WalkPathProcessor implements Task, UpdateListener {
         ClientPlayerEntity player = session.getPlayer();
         BlockPos playerPos = player.getBlockPos();
 
-        BlockPos nextPos = path.get(currentPathIndex);
+        BlockPos nextPos = getCurrentPathPos();
         // If the player is in the next position, advance by one.
         if (isPlayerInBlocks(player, nextPos)) {
             currentPathIndex++;
@@ -74,7 +78,7 @@ public class WalkPathProcessor implements Task, UpdateListener {
                 terminate(PathProcessorResult.ARRIVED);
                 return;
             }
-            nextPos = path.get(currentPathIndex);
+            nextPos = getCurrentPathPos();
         }
 
         MovementUtils.lockControls();
@@ -92,6 +96,12 @@ public class WalkPathProcessor implements Task, UpdateListener {
 
         // checking if the player is lost off the path
         checkOffPath(player);
+        // making sure the path is still valid
+        ensurePathValidity();
+    }
+
+    private BlockPos getCurrentPathPos() {
+        return path.get(currentPathIndex).getPos();
     }
 
     private boolean isPlayerInBlocks(ClientPlayerEntity player, BlockPos pos) {
@@ -99,6 +109,8 @@ public class WalkPathProcessor implements Task, UpdateListener {
         return playerBox.minX >= pos.getX()
                 && playerBox.maxX <= pos.getX() + 1
                 && playerBox.minY >= pos.getY()
+                // Notice the next line is missing in the method isPlayerAboveBlock()
+                // It is the only difference between these two methods.
                 && playerBox.maxY <= pos.getY() + 2
                 && playerBox.minZ >= pos.getZ()
                 && playerBox.maxZ <= pos.getZ() + 1;
@@ -127,7 +139,15 @@ public class WalkPathProcessor implements Task, UpdateListener {
 
     private boolean notOffPath(ClientPlayerEntity player) {
         BlockPos playerPos = player.getBlockPos();
-        return path.get(currentPathIndex).equals(playerPos);
+        return getCurrentPathPos().equals(playerPos);
+    }
+
+    private void ensurePathValidity() {
+        int startIndex = Math.max(currentPathIndex - 1, 0);
+        List<Node> pathAhead = path.subList(startIndex, path.size());
+        if (!pathFinder.isPathValid(pathAhead)) {
+            terminate(PathProcessorResult.INVALID_PATH);
+        }
     }
 
     public interface Callback {
