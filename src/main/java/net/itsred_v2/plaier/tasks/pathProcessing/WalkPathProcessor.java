@@ -6,11 +6,10 @@ import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.ai.pathfinding.Node;
 import net.itsred_v2.plaier.ai.pathfinding.pathfinders.WalkPathFinder;
 import net.itsred_v2.plaier.events.UpdateListener;
-import net.itsred_v2.plaier.session.Session;
 import net.itsred_v2.plaier.task.Task;
 import net.itsred_v2.plaier.task.TaskState;
 import net.itsred_v2.plaier.utils.control.MovementUtils;
-import net.itsred_v2.plaier.utils.control.RotationHelper;
+import net.itsred_v2.plaier.utils.control.RotationUtils;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
@@ -65,9 +64,7 @@ public class WalkPathProcessor implements Task, UpdateListener {
     public void onUpdate() {
         if (state == TaskState.DONE) return;
 
-        Session session = PlaierClient.getCurrentSession();
-        RotationHelper rotationHelper = session.getRotationHelper();
-        ClientPlayerEntity player = session.getPlayer();
+        ClientPlayerEntity player = PlaierClient.getPlayer();
         BlockPos playerPos = player.getBlockPos();
 
         BlockPos nextPos = getCurrentPathPos();
@@ -85,7 +82,7 @@ public class WalkPathProcessor implements Task, UpdateListener {
 
         // Walk towards the block
         if (!isPlayerAboveBlock(player, nextPos)) {
-            rotationHelper.facePosHorizontally(Vec3d.ofCenter(nextPos));
+            RotationUtils.facePosHorizontally(Vec3d.ofCenter(nextPos));
             MovementUtils.forward(true);
         }
 

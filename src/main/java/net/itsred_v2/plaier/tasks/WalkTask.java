@@ -2,12 +2,12 @@ package net.itsred_v2.plaier.tasks;
 
 import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.events.UpdateListener;
-import net.itsred_v2.plaier.session.Session;
 import net.itsred_v2.plaier.task.Task;
+import net.itsred_v2.plaier.utils.Messenger;
 import net.itsred_v2.plaier.utils.control.MovementUtils;
+import net.itsred_v2.plaier.utils.control.RotationUtils;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
 
 public class WalkTask implements Task, UpdateListener {
 
@@ -47,19 +47,16 @@ public class WalkTask implements Task, UpdateListener {
     }
 
     private void process() {
-        Session session = PlaierClient.getCurrentSession();
-        ClientPlayerEntity player = session.getPlayer();
+        ClientPlayerEntity player = PlaierClient.getPlayer();
 
         if (player.getBlockPos().equals(goal)) {
             done = true;
             terminate();
-            session.getMessenger().send("§aWalk task done.");
+            Messenger.send("§aWalk task done.");
             return;
         }
 
-        Vec3d goalBlockCenter = new Vec3d(goal.getX() + 0.5, goal.getY() + 0.5, goal.getZ() + 0.5);
-        session.getRotationHelper().facePosHorizontally(goalBlockCenter);
-
+        RotationUtils.facePosHorizontally(goal.toCenterPos());
         MovementUtils.lockControls();
         MovementUtils.forward(true);
     }

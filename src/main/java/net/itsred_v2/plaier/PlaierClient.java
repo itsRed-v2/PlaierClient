@@ -1,16 +1,19 @@
 package net.itsred_v2.plaier;
 
+import java.util.Objects;
+
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.itsred_v2.plaier.command.CommandProcessor;
 import net.itsred_v2.plaier.event.EventManager;
+import net.itsred_v2.plaier.events.BeforeDebugRenderListener.BeforeDebugRenderEvent;
 import net.itsred_v2.plaier.events.ChatOutputListener;
 import net.itsred_v2.plaier.events.LeaveGameSessionListener;
 import net.itsred_v2.plaier.events.StartGameSessionListener;
-import net.itsred_v2.plaier.events.BeforeDebugRenderListener.BeforeDebugRenderEvent;
 import net.itsred_v2.plaier.session.Session;
 import net.itsred_v2.plaier.session.SessionLifeManager;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayerEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +45,10 @@ public class PlaierClient implements ClientModInitializer {
 
     public static Session getCurrentSession() {
         return sessionManager.getCurrentSession();
+    }
+
+    public static ClientPlayerEntity getPlayer() {
+        return Objects.requireNonNull(MC.player);
     }
 
 }

@@ -16,11 +16,10 @@ public class WalkCmd implements Command {
     @Override
     public void onCommand(List<String> args) {
         Session session = PlaierClient.getCurrentSession();
-        Messenger messenger = session.getMessenger();
         TaskLifeManager taskManager = session.getTaskManager();
 
         if (args.size() != 3) {
-            messenger.send("§cInvalid syntax.");
+            Messenger.send("§cInvalid syntax.");
             return;
         }
 
@@ -34,9 +33,9 @@ public class WalkCmd implements Command {
         boolean success = taskManager.startTask(walkTask);
 
         if (success) {
-            messenger.send("§aStarted walk task.");
+            Messenger.send("§aStarted walk task.");
         } else {
-            messenger.send("§cAnother task is already running.");
+            Messenger.send("§cAnother task is already running.");
         }
 
     }

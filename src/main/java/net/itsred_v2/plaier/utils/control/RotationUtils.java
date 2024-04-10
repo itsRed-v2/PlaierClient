@@ -1,29 +1,26 @@
 package net.itsred_v2.plaier.utils.control;
 
+import net.itsred_v2.plaier.PlaierClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.util.math.Vec3d;
 
-public class RotationHelper {
+public class RotationUtils {
 
-    private final ClientPlayerEntity player;
-
-    public RotationHelper(ClientPlayerEntity player) {
-        this.player = player;
-    }
-
-    public void facePos(Vec3d pos) {
+    public static void facePos(Vec3d pos) {
         Rotation rotation = getRotationsToFace(pos);
+        ClientPlayerEntity player = PlaierClient.getPlayer();
         player.setYaw(rotation.yaw());
         player.setPitch(rotation.pitch());
     }
 
-    public void facePosHorizontally(Vec3d pos) {
+    public static void facePosHorizontally(Vec3d pos) {
+        ClientPlayerEntity player = PlaierClient.getPlayer();
         player.setYaw(getYawToFace(pos));
         player.setPitch(0);
     }
 
-    public Rotation getRotationsToFace(Vec3d pos) {
-        Vec3d eyePos = player.getEyePos();
+    public static Rotation getRotationsToFace(Vec3d pos) {
+        Vec3d eyePos = PlaierClient.getPlayer().getEyePos();
         double dx = eyePos.x - pos.x;
         double dy = eyePos.y - pos.y;
         double dz = eyePos.z - pos.z;
@@ -35,8 +32,8 @@ public class RotationHelper {
         return new Rotation(yaw, pitch);
     }
 
-    public float getYawToFace(Vec3d pos) {
-        Vec3d eyePos = player.getEyePos();
+    public static float getYawToFace(Vec3d pos) {
+        Vec3d eyePos = PlaierClient.getPlayer().getEyePos();
         double dx = eyePos.x - pos.x;
         double dz = eyePos.z - pos.z;
         return (float) Math.toDegrees(Math.atan2(dz, dx)) + 90f;

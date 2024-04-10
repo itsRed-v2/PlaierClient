@@ -45,19 +45,18 @@ public class WalkPathFindTask implements Task, UpdateListener {
 
     private void startPathFinding() {
         Session session = PlaierClient.getCurrentSession();
-        Messenger messenger = session.getMessenger();
-        BlockPos start = session.getPlayer().getBlockPos();
-
+        BlockPos start = PlaierClient.getPlayer().getBlockPos();
         pathFinder = new WalkPathFinder(start, goal, session);
         pathFinderDone = false;
 
-        messenger.send("Searching path...");
+        Messenger.send("Searching path...");
+
         new Thread(() -> {
             try {
                 pathFinder.start();
             } catch (Exception e) {
                 PlaierClient.LOGGER.error(e.getMessage());
-                messenger.send("§cAn error occurred in the pathfinder algorithm.");
+                Messenger.send("§cAn error occurred in the pathfinder algorithm.");
                 terminate();
             }
         }).start();
@@ -96,29 +95,28 @@ public class WalkPathFindTask implements Task, UpdateListener {
     }
 
     private void onPathFinderDone() {
-        Messenger messenger = PlaierClient.getCurrentSession().getMessenger();
 
         PathFinderResult result = Objects.requireNonNull(pathFinder.getResult());
         switch (result) {
             case FOUND -> {
                 setRenderedPath(pathFinder.traceCurrentPathPositions());
-                messenger.send("Path found in %d ms.", pathFinder.getCalculationTime());
+                Messenger.send("Path found in %d ms.", pathFinder.getCalculationTime());
                 startPathProcessor();
             }
             case INVALID_START -> {
-                messenger.send("§cError: §fInaccessible starting position.");
+                Messenger.send("§cError: §fInaccessible starting position.");
                 terminate();
             }
             case INVALID_GOAL -> {
-                messenger.send("§cError: §fInaccessible goal position.");
+                Messenger.send("§cError: §fInaccessible goal position.");
                 terminate();
             }
             case REACHED_ITERATION_LIMIT -> {
-                messenger.send("§cReached iteration limit: could not find a path to the goal. It may be unreachable or too far away.");
+                Messenger.send("§cReached iteration limit: could not find a path to the goal. It may be unreachable or too far away.");
                 terminate();
             }
             case TRAPPED -> {
-                messenger.send("§cThe goal is unreachable. The pathfinder ran out of paths to explore.");
+                Messenger.send("§cThe goal is unreachable. The pathfinder ran out of paths to explore.");
                 terminate();
             }
             default -> {}
@@ -139,19 +137,16 @@ public class WalkPathFindTask implements Task, UpdateListener {
     private void onPathProcessorDone(PathProcessorResult result) {
         switch (result) {
             case ARRIVED -> {
-                PlaierClient.getCurrentSession().getMessenger()
-                        .send("§aSuccessfully arrived at %d %d %d. Releasing controls.", goal.getX(), goal.getY(), goal.getZ());
+                Messenger.send("§aSuccessfully arrived at %d %d %d. Releasing controls.", goal.getX(), goal.getY(), goal.getZ());
                 terminate();
             }
             case OFF_PATH -> {
-                PlaierClient.getCurrentSession().getMessenger()
-                        .send("§6Player is off path: Restarting task...");
+                Messenger.send("§6Player is off path: Restarting task...");
                 pathProcessor = null;
                 startPathFinding();
             }
             case INVALID_PATH -> {
-                PlaierClient.getCurrentSession().getMessenger()
-                        .send("§6The path became invalid: Restarting task...");
+                Messenger.send("§6The path became invalid: Restarting task...");
                 pathProcessor = null;
                 startPathFinding();
             }

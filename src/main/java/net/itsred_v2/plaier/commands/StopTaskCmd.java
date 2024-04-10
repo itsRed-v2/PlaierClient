@@ -12,13 +12,12 @@ public class StopTaskCmd implements Command {
     @Override
     public void onCommand(List<String> args) {
         Session session = PlaierClient.getCurrentSession();
-        Messenger messenger = session.getMessenger();
 
         boolean success = session.getTaskManager().stopTask();
         if (success) {
-            messenger.send("Stopped current task.");
+            Messenger.send("Stopped current task.");
         } else {
-            messenger.send("No task is running.");
+            Messenger.send("No task is running.");
         }
     }
 
