@@ -8,7 +8,8 @@
   "client": [
     "ClientPlayerEntityMixin",
     "ClientPlayNetworkHandlerMixin",
-    "MinecraftClientMixin"
+    "MinecraftClientMixin",
+    "ChatScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1

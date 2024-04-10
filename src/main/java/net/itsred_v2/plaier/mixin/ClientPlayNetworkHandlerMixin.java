@@ -1,7 +1,6 @@
 package net.itsred_v2.plaier.mixin;
 
 import net.itsred_v2.plaier.event.EventManager;
-import net.itsred_v2.plaier.events.ChatOutputListener;
 import net.itsred_v2.plaier.events.StartGameSessionListener;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.network.packet.s2c.play.GameJoinS2CPacket;
@@ -17,18 +16,6 @@ public class ClientPlayNetworkHandlerMixin {
             at = @At("TAIL"))
     public void onGameJoin(GameJoinS2CPacket packet, CallbackInfo ci) {
         EventManager.fire(new StartGameSessionListener.StartGameSessionEvent());
-    }
-
-    @Inject(method = "sendChatMessage",
-            at = @At("HEAD"),
-            cancellable = true)
-    public void onSendChatMessage(String message, CallbackInfo ci) {
-        ChatOutputListener.ChatOutputEvent event = new ChatOutputListener.ChatOutputEvent(message);
-        EventManager.fire(event);
-
-        if (event.isCancelled()) {
-            ci.cancel();
-        }
     }
 
 }
