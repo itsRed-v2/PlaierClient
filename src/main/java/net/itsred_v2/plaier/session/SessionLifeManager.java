@@ -1,7 +1,5 @@
 package net.itsred_v2.plaier.session;
 
-import java.util.Objects;
-
 import net.itsred_v2.plaier.events.LeaveGameSessionListener;
 import net.itsred_v2.plaier.events.StartGameSessionListener;
 import org.jetbrains.annotations.NotNull;
@@ -18,7 +16,8 @@ public class SessionLifeManager implements LeaveGameSessionListener, StartGameSe
 
     @Override
     public void onLeaveGameSession() {
-        Objects.requireNonNull(session).terminate();
+        if (session == null) return;
+        session.terminate();
         session = null;
     }
 

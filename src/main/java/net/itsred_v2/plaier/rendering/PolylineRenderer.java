@@ -2,16 +2,15 @@ package net.itsred_v2.plaier.rendering;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-import com.mojang.blaze3d.systems.RenderSystem;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.events.BeforeDebugRenderListener;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.VertexFormat;
-import net.minecraft.client.render.VertexFormats;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.util.math.Vec3d;
+import org.joml.Matrix4f;
 
 public class PolylineRenderer implements BeforeDebugRenderListener {
 
@@ -38,26 +37,15 @@ public class PolylineRenderer implements BeforeDebugRenderListener {
 
     @Override
     public void beforeDebugRender(BeforeDebugRenderEvent event) {
-        Vec3d camPos = event.getContext().camera().getPos();
+        WorldRenderContext context = event.getContext();
 
-        RenderSystem.enableDepthTest();
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
-        RenderSystem.disableTexture();
-        RenderSystem.disableBlend();
+        VertexConsumer vertexConsumer = Objects.requireNonNull(context.consumers()).getBuffer(RenderLayer.getDebugLineStrip(1.0));
+        Matrix4f matrix = context.matrixStack().peek().getPositionMatrix();
+        Vec3d cam = context.camera().getPos();
 
-        Tessellator tessellator = Tessellator.getInstance();
-        BufferBuilder bufferBuilder = tessellator.getBuffer();
-        bufferBuilder.begin(VertexFormat.DrawMode.DEBUG_LINE_STRIP, VertexFormats.POSITION_COLOR);
-
-        for (Vec3d v : vertices) {
-            Vec3d vec = v.subtract(camPos);
-            bufferBuilder.vertex(vec.x, vec.y, vec.z).color(color).next();
+        for (Vec3d vert : vertices) {
+            vertexConsumer.vertex(matrix, (float) (vert.x - cam.x), (float) (vert.y - cam.y), (float) (vert.z - cam.z)).color(color).next();
         }
-
-        tessellator.draw();
-
-        RenderSystem.enableBlend();
-        RenderSystem.enableTexture();
     }
 
 }

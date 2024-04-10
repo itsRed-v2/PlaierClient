@@ -19,8 +19,4 @@ public class Messenger {
         player.sendMessage(Text.of(PREFIX + message), false);
     }
 
-    public void sendToServer(String message) {
-        player.sendChatMessage(message);
-    }
-
 }
