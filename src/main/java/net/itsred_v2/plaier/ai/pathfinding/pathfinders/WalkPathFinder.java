@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.ai.pathfinding.Node;
 import net.itsred_v2.plaier.ai.pathfinding.PathFinder;
 import net.itsred_v2.plaier.utils.BlockHelper;
@@ -19,7 +20,7 @@ public class WalkPathFinder extends PathFinder {
     private static final int MAX_FALL_HEIGHT = 3;
     public static final double STRAIGHT_WEIGHT = 1;
     public static final double DIAGONAL_WEIGHT = 1.414;
-    public static final double VERTICAL_WEIGHT = 0.1;
+    public static final double VERTICAL_WEIGHT = 0.2;
 
     private final ClientWorld world;
     private final BlockHelper blockHelper;
@@ -54,6 +55,37 @@ public class WalkPathFinder extends PathFinder {
     public List<Node> getValidNeighbors(Node parentNode) {
         BlockPos pos = parentNode.getPos();
 
+        if (canWalkOn(pos.down())) {
+            return getNeighborsOfRestingNode(parentNode);
+        } else if (isBlockTraversable(pos.down())) {
+            return getNeighborsOfFlyingNode(parentNode);
+        } else {
+            PlaierClient.LOGGER.info("Found unsupported block wile pathfinding: {}", pos.down());
+            return new ArrayList<>();
+        }
+    }
+
+    private List<Node> getNeighborsOfFlyingNode(Node parent) {
+        double gcost = parent.getGcost();
+
+        BlockPos pos = parent.getPos();
+
+        for (int blocksFallen = 0; blocksFallen <= MAX_FALL_HEIGHT; blocksFallen++) {
+            BlockPos current = pos.down(blocksFallen);
+            if (!isTraversable(current))
+                break;
+            if (canRestAt(current)) {
+                gcost += VERTICAL_WEIGHT * blocksFallen;
+                return List.of(new Node(parent, current, gcost, calculateHcost(current)));
+            }
+        }
+
+        return List.of();
+    }
+
+    private List<Node> getNeighborsOfRestingNode(Node parentNode) {
+        BlockPos pos = parentNode.getPos();
+
         BlockPos N = pos.north();
         BlockPos S = pos.south();
         BlockPos E = pos.east();
@@ -82,26 +114,15 @@ public class WalkPathFinder extends PathFinder {
         double gcost = parent.getGcost() + STRAIGHT_WEIGHT;
 
         // Walking straight forward
-        if (isAllowed(next)) {
+        if (isTraversable(next)) {
             return new Node(parent, next, gcost, calculateHcost(next));
         }
 
         // Jumping 1 block up
-        BlockPos up = next.up();
-        if (isAllowed(up) && isTraversable(parent.getPos().up())) {
+        BlockPos nextUp = next.up();
+        if (canRestAt(nextUp) && isTraversable(parent.getPos().up())) {
             gcost += VERTICAL_WEIGHT;
-            return new Node(parent, up, gcost, calculateHcost(up));
-        }
-
-        // Falling forward
-        for (int blocksFallen = 0; blocksFallen <= MAX_FALL_HEIGHT; blocksFallen++) {
-            BlockPos current = next.down(blocksFallen);
-            if (!isTraversable(current))
-                break;
-            if (isAllowed(current)) {
-                gcost += VERTICAL_WEIGHT * blocksFallen;
-                return new Node(parent, current, gcost, calculateHcost(current));
-            }
+            return new Node(parent, nextUp, gcost, calculateHcost(nextUp));
         }
 
         return null;
@@ -111,13 +132,13 @@ public class WalkPathFinder extends PathFinder {
         double gcost = parent.getGcost() + DIAGONAL_WEIGHT;
 
         // Walking diagonally forward
-        if (isAllowed(next) && isTraversable(side1) && isTraversable(side2)) {
+        if (isTraversable(next) && isTraversable(side1) && isTraversable(side2)) {
             return new Node(parent, next, gcost, calculateHcost(next));
         }
 
         // Jumping 1 block up
         BlockPos nextUp = next.up();
-        if (isAllowed(nextUp)
+        if (canRestAt(nextUp)
                 && isTraversable(parent.getPos().up())
                 && isTraversable(side1.up())
                 && isTraversable(side2.up())) {
@@ -125,24 +146,15 @@ public class WalkPathFinder extends PathFinder {
             return new Node(parent, nextUp, gcost, calculateHcost(nextUp));
         }
 
-        // Falling
-        if (isTraversable(side1) && isTraversable(side2)) {
-            for (int blocksFallen = 0; blocksFallen <= MAX_FALL_HEIGHT; blocksFallen++) {
-                BlockPos current = next.down(blocksFallen);
-                if (!isTraversable(current))
-                    break;
-                if (isAllowed(current)) {
-                    gcost += VERTICAL_WEIGHT * blocksFallen;
-                    return new Node(parent, current, gcost, calculateHcost(current));
-                }
-            }
-        }
-
         return null;
     }
 
     @Override
     public boolean isAllowed(BlockPos pos) {
+        return isTraversable(pos);
+    }
+
+    public boolean canRestAt(BlockPos pos) {
         return isTraversable(pos) && canWalkOn(pos.down());
     }
 
