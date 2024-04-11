@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.itsred_v2.plaier.commands.EchoCmd;
+import net.itsred_v2.plaier.commands.HelpCommand;
 import net.itsred_v2.plaier.commands.LookAtCmd;
 import net.itsred_v2.plaier.commands.PathFindCmd;
 import net.itsred_v2.plaier.commands.SayCmd;
@@ -17,8 +18,9 @@ import net.itsred_v2.plaier.utils.Messenger;
 public class CommandProcessor implements ChatOutputListener {
 
     private static final String COMMAND_TOKEN = ":";
-    private static final Map<String, Command> COMMAND_MAP = new HashMap<>();
+    public static final Map<String, Command> COMMAND_MAP = new HashMap<>();
     static {
+        COMMAND_MAP.put("help", new HelpCommand());
         COMMAND_MAP.put("echo", new EchoCmd());
         COMMAND_MAP.put("say", new SayCmd());
         COMMAND_MAP.put("walk", new WalkCmd());
@@ -42,7 +44,8 @@ public class CommandProcessor implements ChatOutputListener {
         Command cmd = COMMAND_MAP.get(commandName);
 
         if (cmd == null) {
-            Messenger.send("§cUnknown command: §6" + commandName);
+            Messenger.send("§cUnknown command: §6%s", commandName);
+            Messenger.send("§cType :help for a list of available commands.");
         } else {
             cmd.onCommand(args);
         }
