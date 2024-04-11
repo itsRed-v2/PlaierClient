@@ -8,7 +8,6 @@ import net.itsred_v2.plaier.ai.pathfinding.PathFinderResult;
 import net.itsred_v2.plaier.ai.pathfinding.pathfinders.WalkPathFinder;
 import net.itsred_v2.plaier.events.UpdateListener;
 import net.itsred_v2.plaier.rendering.PolylineRenderer;
-import net.itsred_v2.plaier.session.Session;
 import net.itsred_v2.plaier.task.Task;
 import net.itsred_v2.plaier.task.TaskState;
 import net.itsred_v2.plaier.tasks.pathProcessing.PathProcessorResult;
@@ -44,9 +43,8 @@ public class WalkPathFindTask implements Task, UpdateListener {
     }
 
     private void startPathFinding() {
-        Session session = PlaierClient.getCurrentSession();
         BlockPos start = PlaierClient.getPlayer().getBlockPos();
-        pathFinder = new WalkPathFinder(start, goal, session);
+        pathFinder = new WalkPathFinder(PlaierClient.getWorld(), start, goal);
         pathFinderDone = false;
 
         Messenger.send("Searching path...");

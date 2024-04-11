@@ -6,7 +6,6 @@ import java.util.Objects;
 
 import net.itsred_v2.plaier.ai.pathfinding.Node;
 import net.itsred_v2.plaier.ai.pathfinding.PathFinder;
-import net.itsred_v2.plaier.session.Session;
 import net.itsred_v2.plaier.utils.BlockHelper;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.world.ClientWorld;
@@ -25,10 +24,10 @@ public class WalkPathFinder extends PathFinder {
     private final ClientWorld world;
     private final BlockHelper blockHelper;
 
-    public WalkPathFinder(BlockPos start, BlockPos goal, Session session) {
+    public WalkPathFinder(ClientWorld world, BlockPos start, BlockPos goal) {
         super(start, goal);
-        this.world = session.getWorld();
-        this.blockHelper = session.getBlockHelper();
+        this.world = world;
+        this.blockHelper = new BlockHelper(world);
     }
 
     public double calculateHcost(BlockPos pos) {
