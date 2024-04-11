@@ -3,12 +3,15 @@ package net.itsred_v2.plaier.ai.pathfinding.pathfinders;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.ai.pathfinding.Node;
 import net.itsred_v2.plaier.ai.pathfinding.PathFinder;
 import net.itsred_v2.plaier.utils.BlockHelper;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
@@ -17,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class WalkPathFinder extends PathFinder {
 
+    private static final Set<Block> DANGEROUS_BLOCKS = Set.of(Blocks.FIRE, Blocks.SOUL_FIRE, Blocks.LAVA, Blocks.POWDER_SNOW);
     private static final int MAX_FALL_HEIGHT = 3;
     public static final double STRAIGHT_WEIGHT = 1;
     public static final double DIAGONAL_WEIGHT = 1.414;
@@ -162,11 +166,12 @@ public class WalkPathFinder extends PathFinder {
         return isBlockTraversable(pos) && isBlockTraversable(pos.up());
     }
 
-    // TODO: avoid fluids, trapped blocks and powder snow
     private boolean isBlockTraversable(BlockPos pos) {
         BlockState state = blockHelper.getBlockState(pos);
         if (state == null)
             return false;
+
+        if (DANGEROUS_BLOCKS.contains(state.getBlock())) return false;
 
         VoxelShape shape = state.getCollisionShape(world, pos);
         return shape.isEmpty();
