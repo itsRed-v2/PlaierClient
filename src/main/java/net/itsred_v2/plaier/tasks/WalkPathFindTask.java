@@ -5,6 +5,7 @@ import java.util.Objects;
 
 import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.ai.pathfinding.PathFinderResult;
+import net.itsred_v2.plaier.ai.pathfinding.pathfinders.OneShotWalkPathFinder;
 import net.itsred_v2.plaier.ai.pathfinding.pathfinders.WalkPathFinder;
 import net.itsred_v2.plaier.events.UpdateListener;
 import net.itsred_v2.plaier.rendering.PolylineRenderer;
@@ -44,7 +45,7 @@ public class WalkPathFindTask implements Task, UpdateListener {
 
     private void startPathFinding() {
         BlockPos start = PlaierClient.getPlayer().getBlockPos();
-        pathFinder = new WalkPathFinder(PlaierClient.getWorld(), start, goal);
+        pathFinder = new OneShotWalkPathFinder(PlaierClient.getWorld(), start, goal);
         pathFinderDone = false;
 
         Messenger.send("Searching path...");

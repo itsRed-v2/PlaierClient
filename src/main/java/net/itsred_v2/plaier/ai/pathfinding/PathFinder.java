@@ -54,7 +54,7 @@ public abstract class PathFinder {
     }
 
     private PathFinderResult process() {
-        if (!isAllowed(start)) {
+        if (!isStartValid()) {
             return PathFinderResult.INVALID_START;
         }
 
@@ -66,7 +66,7 @@ public abstract class PathFinder {
                 return PathFinderResult.STOPPED;
 
             // rechecking goal at each iteration in case terrain changes
-            if (!isAllowed(goal))
+            if (!isGoalValid())
                 return PathFinderResult.INVALID_GOAL;
 
             if (OPEN.isEmpty())
@@ -75,7 +75,7 @@ public abstract class PathFinder {
             OPEN.remove(current);
             CLOSED.add(current.getPos());
 
-            if (current.getPos().equals(goal)) {
+            if (isGoalReached(current.getPos())) {
                 return PathFinderResult.FOUND;
             }
 
@@ -92,7 +92,11 @@ public abstract class PathFinder {
 
     public abstract List<Node> getValidNeighbors(Node parentNode);
 
-    public abstract boolean isAllowed(BlockPos pos);
+    public abstract boolean isStartValid();
+
+    public abstract boolean isGoalValid();
+
+    public abstract boolean isGoalReached(BlockPos currentPos);
 
     public boolean isDone() {
         return done;
