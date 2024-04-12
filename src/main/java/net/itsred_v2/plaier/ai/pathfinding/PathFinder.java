@@ -21,7 +21,7 @@ public abstract class PathFinder {
     private Node current;
     private boolean started = false;
     private boolean done = false;
-    private PathFinderResult result;
+    private PathFinderExitStatus exitStatus;
     private long calculationTime = -1;
     private boolean shouldStop = false;
 
@@ -39,7 +39,7 @@ public abstract class PathFinder {
 
         long startTime = new Date().getTime();
 
-        this.result = process();
+        this.exitStatus = process();
         done = true;
 
         long endTime = new Date().getTime();
@@ -53,9 +53,9 @@ public abstract class PathFinder {
         PlaierClient.LOGGER.info("Calculation time: " + calculationTime + " ms");
     }
 
-    private PathFinderResult process() {
+    private PathFinderExitStatus process() {
         if (!isStartValid()) {
-            return PathFinderResult.INVALID_START;
+            return PathFinderExitStatus.INVALID_START;
         }
 
         Node startNode = createStartingNode();
@@ -63,20 +63,20 @@ public abstract class PathFinder {
 
         for (int i = 0; i < MAX_ITERATIONS; i++) {
             if (shouldStop)
-                return PathFinderResult.STOPPED;
+                return PathFinderExitStatus.STOPPED;
 
             // rechecking goal at each iteration in case terrain changes
             if (!isGoalValid())
-                return PathFinderResult.INVALID_GOAL;
+                return PathFinderExitStatus.INVALID_GOAL;
 
             if (OPEN.isEmpty())
-                return PathFinderResult.TRAPPED;
+                return PathFinderExitStatus.TRAPPED;
             current = OPEN.getBestNode();
             OPEN.remove(current);
             CLOSED.add(current.getPos());
 
             if (isGoalReached(current.getPos())) {
-                return PathFinderResult.FOUND;
+                return PathFinderExitStatus.FOUND;
             }
 
             for (Node neighborNode : getValidNeighbors(current)) {
@@ -85,7 +85,7 @@ public abstract class PathFinder {
             }
         }
 
-        return PathFinderResult.REACHED_ITERATION_LIMIT;
+        return PathFinderExitStatus.REACHED_ITERATION_LIMIT;
     }
 
     public abstract Node createStartingNode();
@@ -102,8 +102,8 @@ public abstract class PathFinder {
         return done;
     }
 
-    public @Nullable PathFinderResult getResult() {
-        return result;
+    public @Nullable PathFinderExitStatus getExitStatus() {
+        return exitStatus;
     }
 
     public long getCalculationTime() {
@@ -112,12 +112,6 @@ public abstract class PathFinder {
 
     public void stop() {
         this.shouldStop = true;
-    }
-
-    public List<BlockPos> traceCurrentPathPositions() {
-        return traceCurrentPathNodes().stream()
-                .map(Node::getPos)
-                .toList();
     }
 
     public List<Node> traceCurrentPathNodes() {
@@ -130,6 +124,10 @@ public abstract class PathFinder {
         }
         Collections.reverse(path); // we need to reverse the path because we built it from end to start.
         return path;
+    }
+
+    public PathValidator getPathValidator() {
+        return this::isPathValid;
     }
 
     public boolean isPathValid(List<Node> path) {
@@ -151,6 +149,10 @@ public abstract class PathFinder {
                 return true;
         }
         return false;
+    }
+
+    public interface PathValidator {
+        boolean verify(List<Node> path);
     }
 
 }

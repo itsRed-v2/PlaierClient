@@ -1,13 +1,13 @@
 package net.itsred_v2.plaier.tasks;
 
 import java.util.List;
-import java.util.Objects;
 
 import net.itsred_v2.plaier.PlaierClient;
-import net.itsred_v2.plaier.ai.pathfinding.PathFinderResult;
+import net.itsred_v2.plaier.ai.pathfinding.AsyncPathFinderWrapper;
+import net.itsred_v2.plaier.ai.pathfinding.Node;
+import net.itsred_v2.plaier.ai.pathfinding.PathFinderExitStatus;
 import net.itsred_v2.plaier.ai.pathfinding.pathfinders.OneShotWalkPathFinder;
 import net.itsred_v2.plaier.ai.pathfinding.pathfinders.WalkPathFinder;
-import net.itsred_v2.plaier.events.UpdateListener;
 import net.itsred_v2.plaier.rendering.PolylineRenderer;
 import net.itsred_v2.plaier.task.Task;
 import net.itsred_v2.plaier.task.TaskState;
@@ -16,16 +16,14 @@ import net.itsred_v2.plaier.tasks.pathProcessing.WalkPathProcessor;
 import net.itsred_v2.plaier.utils.Messenger;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ColorHelper;
-import net.minecraft.util.math.Vec3d;
 
-public class WalkPathFindTask implements Task, UpdateListener {
+public class WalkPathFindTask implements Task {
 
     private final BlockPos goal;
     private PolylineRenderer pathRenderer;
     private WalkPathFinder pathFinder;
     private WalkPathProcessor pathProcessor;
     private TaskState state = TaskState.READY;
-    private boolean pathFinderDone = false;
 
     public WalkPathFindTask(BlockPos goal) {
         this.goal = goal;
@@ -36,29 +34,10 @@ public class WalkPathFindTask implements Task, UpdateListener {
         if (state != TaskState.READY) throw new RuntimeException("Task started twice.");
         state = TaskState.RUNNING;
 
-        PlaierClient.getEventManager().add(UpdateListener.class, this);
-        pathRenderer = new PolylineRenderer(ColorHelper.Argb.getArgb(255, 255, 100, 0));
+        pathRenderer = new PolylineRenderer(ColorHelper.Argb.getArgb(255, 0, 255, 255));
         pathRenderer.enable();
 
         startPathFinding();
-    }
-
-    private void startPathFinding() {
-        BlockPos start = PlaierClient.getPlayer().getBlockPos();
-        pathFinder = new OneShotWalkPathFinder(PlaierClient.getWorld(), start, goal);
-        pathFinderDone = false;
-
-        Messenger.send("Searching path...");
-
-        new Thread(() -> {
-            try {
-                pathFinder.start();
-            } catch (Exception e) {
-                PlaierClient.LOGGER.error(e.getMessage());
-                Messenger.send("§cAn error occurred in the pathfinder algorithm.");
-                terminate();
-            }
-        }).start();
     }
 
     @Override
@@ -66,7 +45,6 @@ public class WalkPathFindTask implements Task, UpdateListener {
         if (state != TaskState.RUNNING) return;
         state = TaskState.DONE;
 
-        PlaierClient.getEventManager().remove(UpdateListener.class, this);
         pathRenderer.disable();
 
         if (!pathFinder.isDone())
@@ -81,24 +59,18 @@ public class WalkPathFindTask implements Task, UpdateListener {
         return state == TaskState.DONE;
     }
 
-    @Override
-    public void onUpdate() {
-        if (!pathFinderDone) {
-            if (pathFinder.isDone()) {
-                pathFinderDone = true;
-                onPathFinderDone();
-            } else {
-                setRenderedPath(pathFinder.traceCurrentPathPositions());
-            }
-        }
+    private void startPathFinding() {
+        BlockPos start = PlaierClient.getPlayer().getBlockPos();
+        pathFinder = new OneShotWalkPathFinder(PlaierClient.getWorld(), start, goal);
+
+        Messenger.send("Pathfinding...");
+        new AsyncPathFinderWrapper(pathFinder, this::onPathFinderDone);
     }
 
-    private void onPathFinderDone() {
-
-        PathFinderResult result = Objects.requireNonNull(pathFinder.getResult());
+    private void onPathFinderDone(PathFinderExitStatus result) {
         switch (result) {
             case FOUND -> {
-                setRenderedPath(pathFinder.traceCurrentPathPositions());
+                setRenderedPath(pathFinder.traceCurrentPathNodes());
                 Messenger.send("Path found in %d ms.", pathFinder.getCalculationTime());
                 startPathProcessor();
             }
@@ -118,18 +90,19 @@ public class WalkPathFindTask implements Task, UpdateListener {
                 Messenger.send("§cThe goal is unreachable. The pathfinder ran out of paths to explore.");
                 terminate();
             }
+            case UNHANDLED_ERROR -> terminate();
             default -> {}
         }
     }
 
-    private void setRenderedPath(List<BlockPos> path) {
+    private void setRenderedPath(List<Node> path) {
         pathRenderer.vertices = path.stream()
-                .map(blockPos -> new Vec3d(blockPos.getX() + 0.5, blockPos.getY() + 0.5, blockPos.getZ() + 0.5))
+                .map(node -> node.getPos().toCenterPos())
                 .toList();
     }
 
     private void startPathProcessor() {
-        pathProcessor = new WalkPathProcessor(pathFinder, this::onPathProcessorDone);
+        pathProcessor = new WalkPathProcessor(pathFinder.getPathValidator(), pathFinder.traceCurrentPathNodes(), this::onPathProcessorDone);
         pathProcessor.start();
     }
 

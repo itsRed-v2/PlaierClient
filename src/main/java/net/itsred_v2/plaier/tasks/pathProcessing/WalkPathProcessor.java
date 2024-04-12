@@ -4,7 +4,7 @@ import java.util.List;
 
 import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.ai.pathfinding.Node;
-import net.itsred_v2.plaier.ai.pathfinding.pathfinders.WalkPathFinder;
+import net.itsred_v2.plaier.ai.pathfinding.PathFinder;
 import net.itsred_v2.plaier.events.UpdateListener;
 import net.itsred_v2.plaier.task.Task;
 import net.itsred_v2.plaier.task.TaskState;
@@ -20,15 +20,15 @@ public class WalkPathProcessor implements Task, UpdateListener {
     private static final int MAX_TICKS_OFF_PATH = 20; // 1 second
 
     private TaskState state = TaskState.READY;
-    private final WalkPathFinder pathFinder;
+    private final PathFinder.PathValidator pathValidator;
     private final List<Node> path;
     private final Callback callback;
     private int currentPathIndex = 0;
     private int ticksOffPath = 0;
 
-    public WalkPathProcessor(WalkPathFinder pathFinder, Callback callback) {
-        this.pathFinder = pathFinder;
-        this.path = pathFinder.traceCurrentPathNodes();
+    public WalkPathProcessor(PathFinder.PathValidator pathValidator, List<Node> path, Callback callback) {
+        this.pathValidator = pathValidator;
+        this.path = path;
         this.callback = callback;
     }
 
@@ -142,7 +142,7 @@ public class WalkPathProcessor implements Task, UpdateListener {
     private void ensurePathValidity() {
         int startIndex = Math.max(currentPathIndex - 1, 0);
         List<Node> pathAhead = path.subList(startIndex, path.size());
-        if (!pathFinder.isPathValid(pathAhead)) {
+        if (!pathValidator.verify(pathAhead)) {
             terminate(PathProcessorResult.INVALID_PATH);
         }
     }

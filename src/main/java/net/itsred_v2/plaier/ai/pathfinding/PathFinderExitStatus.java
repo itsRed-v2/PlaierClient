@@ -1,10 +1,11 @@
 package net.itsred_v2.plaier.ai.pathfinding;
 
-public enum PathFinderResult {
+public enum PathFinderExitStatus {
     FOUND,
     STOPPED,
     INVALID_START,
     INVALID_GOAL,
     REACHED_ITERATION_LIMIT,
-    TRAPPED
+    TRAPPED,
+    UNHANDLED_ERROR
 }
