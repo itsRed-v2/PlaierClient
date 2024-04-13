@@ -1,6 +1,7 @@
 package net.itsred_v2.plaier.tasks.pathProcessing;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.ai.pathfinding.Node;
@@ -22,14 +23,17 @@ public class WalkPathProcessor implements Task, UpdateListener {
     private TaskState state = TaskState.READY;
     private final PathFinder.PathValidator pathValidator;
     private final List<Node> path;
-    private final Callback callback;
+    private final Consumer<PathProcessorResult> onArrive;
+    private final Consumer<BlockPos> onAdvance;
     private int currentPathIndex = 0;
     private int ticksOffPath = 0;
 
-    public WalkPathProcessor(PathFinder.PathValidator pathValidator, List<Node> path, Callback callback) {
+    public WalkPathProcessor(PathFinder.PathValidator pathValidator, List<Node> path,
+                             Consumer<PathProcessorResult> onArrive, Consumer<BlockPos> onAdvance) {
         this.pathValidator = pathValidator;
         this.path = path;
-        this.callback = callback;
+        this.onArrive = onArrive;
+        this.onAdvance = onAdvance;
     }
 
     @Override
@@ -52,7 +56,7 @@ public class WalkPathProcessor implements Task, UpdateListener {
         PlaierClient.getEventManager().remove(UpdateListener.class, this);
         MovementUtils.lockControls(); // resetting controls
 
-        this.callback.call(result);
+        this.onArrive.accept(result);
     }
 
     @Override
@@ -70,6 +74,10 @@ public class WalkPathProcessor implements Task, UpdateListener {
         BlockPos nextPos = getCurrentPathPos();
         // If the player is in the next position, advance by one.
         if (isPlayerInBlocks(player, nextPos)) {
+            this.onAdvance.accept(nextPos);
+            if (this.state == TaskState.DONE) // The onAdvance callback may terminate the task
+                return;
+
             currentPathIndex++;
             if (currentPathIndex >= path.size()) {
                 terminate(PathProcessorResult.ARRIVED);
@@ -147,7 +155,4 @@ public class WalkPathProcessor implements Task, UpdateListener {
         }
     }
 
-    public interface Callback {
-        void call(PathProcessorResult result);
-    }
 }

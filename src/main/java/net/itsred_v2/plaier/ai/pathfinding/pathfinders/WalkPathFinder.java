@@ -66,7 +66,7 @@ public abstract class WalkPathFinder extends PathFinder {
         } else if (isBlockTraversable(pos.down())) {
             return getNeighborsOfFlyingNode(parentNode);
         } else {
-            PlaierClient.LOGGER.info("Found unsupported block wile pathfinding: {}", pos.down());
+            PlaierClient.LOGGER.info("Found unsupported block wile pathfinding: {} {}", blockHelper.getBlockState(pos.down()), pos.down());
             return new ArrayList<>();
         }
     }

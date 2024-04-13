@@ -6,7 +6,7 @@ import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.ai.pathfinding.AsyncPathFinderWrapper;
 import net.itsred_v2.plaier.ai.pathfinding.Node;
 import net.itsred_v2.plaier.ai.pathfinding.PathFinderExitStatus;
-import net.itsred_v2.plaier.ai.pathfinding.pathfinders.OneShotWalkPathFinder;
+import net.itsred_v2.plaier.ai.pathfinding.pathfinders.ExplorerWalkPathFinder;
 import net.itsred_v2.plaier.ai.pathfinding.pathfinders.WalkPathFinder;
 import net.itsred_v2.plaier.rendering.PolylineRenderer;
 import net.itsred_v2.plaier.task.Task;
@@ -24,6 +24,7 @@ public class WalkPathFindTask implements Task {
     private WalkPathFinder pathFinder;
     private WalkPathProcessor pathProcessor;
     private TaskState state = TaskState.READY;
+    private BlockPos lastPathfindingStart;
 
     public WalkPathFindTask(BlockPos goal) {
         this.goal = goal;
@@ -61,7 +62,8 @@ public class WalkPathFindTask implements Task {
 
     private void startPathFinding() {
         BlockPos start = PlaierClient.getPlayer().getBlockPos();
-        pathFinder = new OneShotWalkPathFinder(PlaierClient.getWorld(), start, goal);
+        this.lastPathfindingStart = start;
+        pathFinder = new ExplorerWalkPathFinder(PlaierClient.getWorld(), start, goal);
 
         Messenger.send("Pathfinding...");
         new AsyncPathFinderWrapper(pathFinder, this::onPathFinderDone);
@@ -102,7 +104,8 @@ public class WalkPathFindTask implements Task {
     }
 
     private void startPathProcessor() {
-        pathProcessor = new WalkPathProcessor(pathFinder.getPathValidator(), pathFinder.traceCurrentPathNodes(), this::onPathProcessorDone);
+        pathProcessor = new WalkPathProcessor(pathFinder.getPathValidator(), pathFinder.traceCurrentPathNodes(),
+                this::onPathProcessorDone, this::onPathProcessorAdvance);
         pathProcessor.start();
     }
 
@@ -123,6 +126,14 @@ public class WalkPathFindTask implements Task {
                 startPathFinding();
             }
             default -> {}
+        }
+    }
+
+    private void onPathProcessorAdvance(BlockPos currentPos) {
+        if (!currentPos.isWithinDistance(this.lastPathfindingStart, 32)) {
+            pathProcessor.terminate();
+            pathProcessor = null;
+            startPathFinding();
         }
     }
 
