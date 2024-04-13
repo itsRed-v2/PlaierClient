@@ -25,7 +25,7 @@ public class WalkPathProcessor implements Task, UpdateListener {
     private final List<Node> path;
     private final Consumer<PathProcessorResult> onArrive;
     private final Consumer<BlockPos> onAdvance;
-    private int currentPathIndex = 0;
+    private int nextPathIndex = 0;
     private int ticksOffPath = 0;
 
     public WalkPathProcessor(PathFinder.PathValidator pathValidator, List<Node> path,
@@ -69,22 +69,14 @@ public class WalkPathProcessor implements Task, UpdateListener {
         if (state == TaskState.DONE) return;
 
         ClientPlayerEntity player = PlaierClient.getPlayer();
+
+        // Incrementing the nextPathIndex if the player has reached the next position
+        advance(player);
+        // The task may be terminated in the advance() call, we need to take it into account
+        if (this.state == TaskState.DONE) return;
+
         BlockPos playerPos = player.getBlockPos();
-
-        BlockPos nextPos = getCurrentPathPos();
-        // If the player is in the next position, advance by one.
-        if (isPlayerInBlocks(player, nextPos)) {
-            this.onAdvance.accept(nextPos);
-            if (this.state == TaskState.DONE) // The onAdvance callback may terminate the task
-                return;
-
-            currentPathIndex++;
-            if (currentPathIndex >= path.size()) {
-                terminate(PathProcessorResult.ARRIVED);
-                return;
-            }
-            nextPos = getCurrentPathPos();
-        }
+        BlockPos nextPos = path.get(nextPathIndex).getPos();
 
         MovementUtils.lockControls();
 
@@ -105,8 +97,20 @@ public class WalkPathProcessor implements Task, UpdateListener {
         ensurePathValidity();
     }
 
-    private BlockPos getCurrentPathPos() {
-        return path.get(currentPathIndex).getPos();
+    private void advance(ClientPlayerEntity player) {
+        // If the player is in one of the next positions, advance to this position.
+        for (int index = nextPathIndex; index < nextPathIndex + 2 && index < path.size(); index++) {
+            BlockPos nextPos = path.get(index).getPos();
+            if (isPlayerInBlocks(player, nextPos)) {
+                nextPathIndex = index + 1;
+                if (nextPathIndex >= path.size()) {
+                    terminate(PathProcessorResult.ARRIVED);
+                } else {
+                    this.onAdvance.accept(nextPos);
+                }
+                return;
+            }
+        }
     }
 
     private boolean isPlayerInBlocks(ClientPlayerEntity player, BlockPos pos) {
@@ -144,11 +148,16 @@ public class WalkPathProcessor implements Task, UpdateListener {
 
     private boolean notOffPath(ClientPlayerEntity player) {
         BlockPos playerPos = player.getBlockPos();
-        return getCurrentPathPos().equals(playerPos);
+        for (int index = nextPathIndex; index < nextPathIndex + 2 && index < path.size(); index++) {
+            BlockPos nextPos = path.get(index).getPos();
+            if (nextPos.equals(playerPos))
+                return true;
+        }
+        return false;
     }
 
     private void ensurePathValidity() {
-        int startIndex = Math.max(currentPathIndex - 1, 0);
+        int startIndex = Math.max(nextPathIndex - 1, 0);
         List<Node> pathAhead = path.subList(startIndex, path.size());
         if (!pathValidator.verify(pathAhead)) {
             terminate(PathProcessorResult.INVALID_PATH);
