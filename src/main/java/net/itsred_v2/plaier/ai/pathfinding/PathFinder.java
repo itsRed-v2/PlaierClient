@@ -9,7 +9,6 @@ import java.util.Set;
 
 import net.itsred_v2.plaier.PlaierClient;
 import net.minecraft.util.math.BlockPos;
-import org.jetbrains.annotations.Nullable;
 
 public abstract class PathFinder {
 
@@ -46,11 +45,11 @@ public abstract class PathFinder {
         this.calculationTime = endTime - startTime;
 
         // Debug
-        PlaierClient.LOGGER.info("OPEN set size: " + OPEN.size());
-        PlaierClient.LOGGER.info("CLOSED set size: " + CLOSED.size());
-        List<Node> path = traceCurrentPathNodes();
-        PlaierClient.LOGGER.info("PATH size: " + path.size());
-        PlaierClient.LOGGER.info("Calculation time: " + calculationTime + " ms");
+        PlaierClient.LOGGER.info("OPEN set size: {}", OPEN.size());
+        PlaierClient.LOGGER.info("CLOSED set size: {}", CLOSED.size());
+        List<Node> path = traceCurrentPath();
+        PlaierClient.LOGGER.info("PATH size: {}", path.size());
+        PlaierClient.LOGGER.info("Calculation time: {} ms", calculationTime);
     }
 
     private PathFinderExitStatus process() {
@@ -102,19 +101,20 @@ public abstract class PathFinder {
         return done;
     }
 
-    public @Nullable PathFinderExitStatus getExitStatus() {
-        return exitStatus;
-    }
-
-    public long getCalculationTime() {
-        return calculationTime;
-    }
-
     public void stop() {
         this.shouldStop = true;
     }
 
-    public List<Node> traceCurrentPathNodes() {
+    public PathFinderOutput getOutput() {
+        return new PathFinderOutput(
+                exitStatus,
+                traceCurrentPath(),
+                this::isPathValid,
+                calculationTime
+        );
+    }
+
+    private List<Node> traceCurrentPath() {
         List<Node> path = new ArrayList<>();
         Node currentNode = current;
 
@@ -126,11 +126,7 @@ public abstract class PathFinder {
         return path;
     }
 
-    public PathValidator getPathValidator() {
-        return this::isPathValid;
-    }
-
-    public boolean isPathValid(List<Node> path) {
+    private boolean isPathValid(List<Node> path) {
         for (int i = 0; i < path.size() - 1; i++) {
             Node current = path.get(i);
             Node next = path.get(i + 1);

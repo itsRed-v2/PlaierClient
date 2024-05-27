@@ -6,6 +6,7 @@ import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.ai.pathfinding.AsyncPathFinderWrapper;
 import net.itsred_v2.plaier.ai.pathfinding.Node;
 import net.itsred_v2.plaier.ai.pathfinding.PathFinder;
+import net.itsred_v2.plaier.ai.pathfinding.PathFinderOutput;
 import net.itsred_v2.plaier.ai.pathfinding.pathfinders.ExplorerWalkPathFinder;
 import net.itsred_v2.plaier.rendering.PolylineRenderer;
 import net.itsred_v2.plaier.task.Task;
@@ -85,41 +86,43 @@ public class WalkPathFindTask implements Task {
         if (pathFinderWrapper != null)
             pathFinderWrapper.cancel();
 
-        pathFinderWrapper = new AsyncPathFinderWrapper(pathFinder, exitStatus -> {
-            switch (exitStatus) {
-                case FOUND -> {
-                    if (isUpdate) {
-                        path.subList(updateIndex, path.size()).clear(); // removes all nodes after updateIndex (included)
-                        path.addAll(pathFinder.traceCurrentPathNodes()); // appends all nodes from the newly processed path
-                        pathProcessor.replacePath(path);
-                        Messenger.send("Path updated in %d ms.", pathFinder.getCalculationTime());
-                    } else {
-                        path = pathFinder.traceCurrentPathNodes();
-                        startPathProcessor(pathFinder.getPathValidator(), path);
-                        Messenger.send("Path found in %d ms.", pathFinder.getCalculationTime());
-                    }
-                    renderPath();
+        pathFinderWrapper = new AsyncPathFinderWrapper(pathFinder, output -> onPathFinderDone(isUpdate, updateIndex, output));
+    }
+
+    private void onPathFinderDone(boolean isUpdate, int updateIndex, PathFinderOutput output) {
+        switch (output.exitStatus()) {
+            case FOUND -> {
+                if (isUpdate) {
+                    path.subList(updateIndex, path.size()).clear(); // removes all nodes after updateIndex (included)
+                    path.addAll(output.path()); // appends all nodes from the newly processed path
+                    pathProcessor.replacePath(path);
+                    Messenger.send("Path updated in %d ms.", output.calculationTime());
+                } else {
+                    path = output.path();
+                    startPathProcessor(output.pathValidator(), path);
+                    Messenger.send("Path found in %d ms.", output.calculationTime());
                 }
-                case INVALID_START -> {
-                    Messenger.send("§cError: §fInaccessible starting position.");
-                    terminate();
-                }
-                case INVALID_GOAL -> {
-                    Messenger.send("§cError: §fInaccessible goal position.");
-                    terminate();
-                }
-                case REACHED_ITERATION_LIMIT -> {
-                    Messenger.send("§cReached iteration limit: could not find a path to the goal. It may be unreachable or too far away.");
-                    terminate();
-                }
-                case TRAPPED -> {
-                    Messenger.send("§cThe goal is unreachable. The pathfinder ran out of paths to explore.");
-                    terminate();
-                }
-                case UNHANDLED_ERROR -> terminate();
-                default -> {}
+                renderPath();
             }
-        });
+            case INVALID_START -> {
+                Messenger.send("§cError: §fInaccessible starting position.");
+                terminate();
+            }
+            case INVALID_GOAL -> {
+                Messenger.send("§cError: §fInaccessible goal position.");
+                terminate();
+            }
+            case REACHED_ITERATION_LIMIT -> {
+                Messenger.send("§cReached iteration limit: could not find a path to the goal. It may be unreachable or too far away.");
+                terminate();
+            }
+            case TRAPPED -> {
+                Messenger.send("§cThe goal is unreachable. The pathfinder ran out of paths to explore.");
+                terminate();
+            }
+            case UNHANDLED_ERROR -> terminate();
+            default -> {}
+        }
     }
 
     private void renderPath() {
@@ -155,12 +158,12 @@ public class WalkPathFindTask implements Task {
                 terminate();
             }
             case OFF_PATH -> {
-                Messenger.send("§6Player is off path: Restarting task...");
+                Messenger.send("§6Player is off path: Recalculating path...");
                 pathProcessor = null;
                 startPathFinding();
             }
             case INVALID_PATH -> {
-                Messenger.send("§6The path became invalid: Restarting task...");
+                Messenger.send("§6The path became invalid: Recalculating path...");
                 pathProcessor = null;
                 startPathFinding();
             }

@@ -14,7 +14,7 @@ import org.joml.Matrix4f;
 
 public class PolylineRenderer implements BeforeDebugRenderListener {
 
-    public int color;
+    public final int color;
     public List<Vec3d> vertices = new ArrayList<>();
 
     private boolean enabled = false;

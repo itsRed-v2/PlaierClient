@@ -67,14 +67,6 @@ public class WalkPathProcessor implements Task, UpdateListener {
     }
 
     public void replacePath(List<Node> newPath) {
-        for (int i = targetNodeIndex - 1; i < targetNodeIndex + 1; i++) {
-            BlockPos oldPos = path.get(i).getPos();
-            BlockPos newPos = newPath.get(i).getPos();
-            if (!oldPos.equals(newPos)) {
-                throw new IllegalArgumentException("Updated path changed around player's current position");
-            }
-        }
-
         this.path = new ArrayList<>(newPath);
     }
 
@@ -84,7 +76,7 @@ public class WalkPathProcessor implements Task, UpdateListener {
 
         ClientPlayerEntity player = PlaierClient.getPlayer();
 
-        // Incrementing the nextPathIndex if the player has reached the next position
+        // Incrementing the targetNodeIndex if the player has reached the next position
         advance(player);
         // The task may be terminated in the advance() call, we need to take it into account
         if (this.state == TaskState.DONE) return;
