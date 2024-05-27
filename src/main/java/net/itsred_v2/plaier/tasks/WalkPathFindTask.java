@@ -5,9 +5,8 @@ import java.util.List;
 import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.ai.pathfinding.AsyncPathFinderWrapper;
 import net.itsred_v2.plaier.ai.pathfinding.Node;
-import net.itsred_v2.plaier.ai.pathfinding.PathFinderExitStatus;
+import net.itsred_v2.plaier.ai.pathfinding.PathFinder;
 import net.itsred_v2.plaier.ai.pathfinding.pathfinders.ExplorerWalkPathFinder;
-import net.itsred_v2.plaier.ai.pathfinding.pathfinders.WalkPathFinder;
 import net.itsred_v2.plaier.rendering.PolylineRenderer;
 import net.itsred_v2.plaier.task.Task;
 import net.itsred_v2.plaier.task.TaskState;
@@ -20,8 +19,10 @@ import net.minecraft.util.math.ColorHelper;
 public class WalkPathFindTask implements Task {
 
     private final BlockPos goal;
-    private PolylineRenderer pathRenderer;
-    private WalkPathFinder pathFinder;
+    private PolylineRenderer bluePathRenderer;
+    private PolylineRenderer redPathRenderer;
+    private AsyncPathFinderWrapper pathFinderWrapper;
+    private List<Node> path;
     private WalkPathProcessor pathProcessor;
     private TaskState state = TaskState.READY;
     private BlockPos lastPathfindingStart;
@@ -35,8 +36,10 @@ public class WalkPathFindTask implements Task {
         if (state != TaskState.READY) throw new RuntimeException("Task started twice.");
         state = TaskState.RUNNING;
 
-        pathRenderer = new PolylineRenderer(ColorHelper.Argb.getArgb(255, 0, 255, 255));
-        pathRenderer.enable();
+        bluePathRenderer = new PolylineRenderer(ColorHelper.Argb.getArgb(255, 0, 255, 255));
+        bluePathRenderer.enable();
+        redPathRenderer = new PolylineRenderer(ColorHelper.Argb.getArgb(255, 255, 0, 0));
+        redPathRenderer.enable();
 
         startPathFinding();
     }
@@ -46,10 +49,11 @@ public class WalkPathFindTask implements Task {
         if (state != TaskState.RUNNING) return;
         state = TaskState.DONE;
 
-        pathRenderer.disable();
+        bluePathRenderer.disable();
+        redPathRenderer.disable();
 
-        if (!pathFinder.isDone())
-            pathFinder.stop();
+        if (pathFinderWrapper != null)
+            pathFinderWrapper.cancel();
 
         if (pathProcessor != null)
             pathProcessor.terminate();
@@ -61,51 +65,86 @@ public class WalkPathFindTask implements Task {
     }
 
     private void startPathFinding() {
-        BlockPos start = PlaierClient.getPlayer().getBlockPos();
-        this.lastPathfindingStart = start;
-        pathFinder = new ExplorerWalkPathFinder(PlaierClient.getWorld(), start, goal);
-
-        Messenger.send("Pathfinding...");
-        new AsyncPathFinderWrapper(pathFinder, this::onPathFinderDone);
+        pathFind(false, -1);
     }
 
-    private void onPathFinderDone(PathFinderExitStatus result) {
-        switch (result) {
-            case FOUND -> {
-                setRenderedPath(pathFinder.traceCurrentPathNodes());
-                Messenger.send("Path found in %d ms.", pathFinder.getCalculationTime());
-                startPathProcessor();
-            }
-            case INVALID_START -> {
-                Messenger.send("§cError: §fInaccessible starting position.");
-                terminate();
-            }
-            case INVALID_GOAL -> {
-                Messenger.send("§cError: §fInaccessible goal position.");
-                terminate();
-            }
-            case REACHED_ITERATION_LIMIT -> {
-                Messenger.send("§cReached iteration limit: could not find a path to the goal. It may be unreachable or too far away.");
-                terminate();
-            }
-            case TRAPPED -> {
-                Messenger.send("§cThe goal is unreachable. The pathfinder ran out of paths to explore.");
-                terminate();
-            }
-            case UNHANDLED_ERROR -> terminate();
-            default -> {}
+    private void updatePath(int updateIndex) {
+        pathFind(true, updateIndex);
+    }
+
+    private void pathFind(boolean isUpdate, int updateIndex) {
+        if (isUpdate) {
+            renderPathUpdating(updateIndex);
         }
+        Messenger.send(isUpdate ? "Updating path..." : "Pathfinding...");
+
+        BlockPos start = isUpdate ? path.get(updateIndex).getPos() : PlaierClient.getPlayer().getBlockPos();
+        lastPathfindingStart = start;
+        PathFinder pathFinder = new ExplorerWalkPathFinder(PlaierClient.getWorld(), start, goal);
+
+        if (pathFinderWrapper != null)
+            pathFinderWrapper.cancel();
+
+        pathFinderWrapper = new AsyncPathFinderWrapper(pathFinder, exitStatus -> {
+            switch (exitStatus) {
+                case FOUND -> {
+                    if (isUpdate) {
+                        path.subList(updateIndex, path.size()).clear(); // removes all nodes after updateIndex (included)
+                        path.addAll(pathFinder.traceCurrentPathNodes()); // appends all nodes from the newly processed path
+                        pathProcessor.replacePath(path);
+                        Messenger.send("Path updated in %d ms.", pathFinder.getCalculationTime());
+                    } else {
+                        path = pathFinder.traceCurrentPathNodes();
+                        startPathProcessor(pathFinder.getPathValidator(), path);
+                        Messenger.send("Path found in %d ms.", pathFinder.getCalculationTime());
+                    }
+                    renderPath();
+                }
+                case INVALID_START -> {
+                    Messenger.send("§cError: §fInaccessible starting position.");
+                    terminate();
+                }
+                case INVALID_GOAL -> {
+                    Messenger.send("§cError: §fInaccessible goal position.");
+                    terminate();
+                }
+                case REACHED_ITERATION_LIMIT -> {
+                    Messenger.send("§cReached iteration limit: could not find a path to the goal. It may be unreachable or too far away.");
+                    terminate();
+                }
+                case TRAPPED -> {
+                    Messenger.send("§cThe goal is unreachable. The pathfinder ran out of paths to explore.");
+                    terminate();
+                }
+                case UNHANDLED_ERROR -> terminate();
+                default -> {}
+            }
+        });
     }
 
-    private void setRenderedPath(List<Node> path) {
-        pathRenderer.vertices = path.stream()
+    private void renderPath() {
+        bluePathRenderer.vertices = path.stream()
                 .map(node -> node.getPos().toCenterPos())
                 .toList();
+        redPathRenderer.disable();
     }
 
-    private void startPathProcessor() {
-        pathProcessor = new WalkPathProcessor(pathFinder.getPathValidator(), pathFinder.traceCurrentPathNodes(),
-                this::onPathProcessorDone, this::onPathProcessorAdvance);
+    private void renderPathUpdating(int updateIndex) {
+        bluePathRenderer.vertices = path.subList(0, updateIndex + 1)
+                .stream()
+                .map(node -> node.getPos().toCenterPos())
+                .toList();
+        redPathRenderer.vertices = path.subList(updateIndex, path.size())
+                .stream()
+                .map(node -> node.getPos().toCenterPos())
+                .toList();
+        redPathRenderer.enable();
+    }
+
+    private void startPathProcessor(PathFinder.PathValidator pathValidator, List<Node> path) {
+        if (pathProcessor != null)
+            pathProcessor.terminate();
+        pathProcessor = new WalkPathProcessor(pathValidator, path, this::onPathProcessorDone, this::onPathProcessorAdvance);
         pathProcessor.start();
     }
 
@@ -129,11 +168,10 @@ public class WalkPathFindTask implements Task {
         }
     }
 
-    private void onPathProcessorAdvance(BlockPos currentPos) {
+    private void onPathProcessorAdvance(int currentIndex, BlockPos currentPos) {
         if (!currentPos.isWithinDistance(this.lastPathfindingStart, 32)) {
-            pathProcessor.terminate();
-            pathProcessor = null;
-            startPathFinding();
+            int updateIndex = currentIndex + 5;
+            updatePath(updateIndex);
         }
     }
 

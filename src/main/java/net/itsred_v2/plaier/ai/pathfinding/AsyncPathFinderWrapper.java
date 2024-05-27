@@ -10,6 +10,7 @@ public class AsyncPathFinderWrapper implements UpdateListener {
 
     private final PathFinder pathFinder;
     private final Consumer<PathFinderExitStatus> onComplete;
+    private boolean cancelled = false;
 
     public AsyncPathFinderWrapper(PathFinder pathFinder, Consumer<PathFinderExitStatus> onComplete) {
         this.pathFinder = pathFinder;
@@ -32,9 +33,16 @@ public class AsyncPathFinderWrapper implements UpdateListener {
 
     @Override
     public void onUpdate() {
+        if (cancelled) return;
         if (pathFinder.isDone()) {
             PlaierClient.getEventManager().remove(UpdateListener.class, this);
             this.onComplete.accept(pathFinder.getExitStatus());
         }
+    }
+
+    public void cancel() {
+        PlaierClient.getEventManager().remove(UpdateListener.class, this);
+        pathFinder.stop();
+        cancelled = true;
     }
 }

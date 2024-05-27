@@ -1,6 +1,8 @@
 package net.itsred_v2.plaier.tasks.pathProcessing;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import net.itsred_v2.plaier.PlaierClient;
@@ -22,16 +24,16 @@ public class WalkPathProcessor implements Task, UpdateListener {
 
     private TaskState state = TaskState.READY;
     private final PathFinder.PathValidator pathValidator;
-    private final List<Node> path;
+    private List<Node> path;
     private final Consumer<PathProcessorResult> onArrive;
-    private final Consumer<BlockPos> onAdvance;
-    private int nextPathIndex = 0;
+    private final BiConsumer<Integer, BlockPos> onAdvance;
+    private int targetNodeIndex = 0;
     private int ticksOffPath = 0;
 
     public WalkPathProcessor(PathFinder.PathValidator pathValidator, List<Node> path,
-                             Consumer<PathProcessorResult> onArrive, Consumer<BlockPos> onAdvance) {
+                             Consumer<PathProcessorResult> onArrive, BiConsumer<Integer, BlockPos> onAdvance) {
         this.pathValidator = pathValidator;
-        this.path = path;
+        this.path = new ArrayList<>(path);
         this.onArrive = onArrive;
         this.onAdvance = onAdvance;
     }
@@ -64,6 +66,18 @@ public class WalkPathProcessor implements Task, UpdateListener {
         return state == TaskState.DONE;
     }
 
+    public void replacePath(List<Node> newPath) {
+        for (int i = targetNodeIndex - 1; i < targetNodeIndex + 1; i++) {
+            BlockPos oldPos = path.get(i).getPos();
+            BlockPos newPos = newPath.get(i).getPos();
+            if (!oldPos.equals(newPos)) {
+                throw new IllegalArgumentException("Updated path changed around player's current position");
+            }
+        }
+
+        this.path = new ArrayList<>(newPath);
+    }
+
     @Override
     public void onUpdate() {
         if (state == TaskState.DONE) return;
@@ -76,7 +90,7 @@ public class WalkPathProcessor implements Task, UpdateListener {
         if (this.state == TaskState.DONE) return;
 
         BlockPos playerPos = player.getBlockPos();
-        BlockPos nextPos = path.get(nextPathIndex).getPos();
+        BlockPos nextPos = path.get(targetNodeIndex).getPos();
 
         MovementUtils.lockControls();
 
@@ -99,14 +113,14 @@ public class WalkPathProcessor implements Task, UpdateListener {
 
     private void advance(ClientPlayerEntity player) {
         // If the player is in one of the next positions, advance to this position.
-        for (int index = nextPathIndex; index < nextPathIndex + 2 && index < path.size(); index++) {
+        for (int index = targetNodeIndex; index < targetNodeIndex + 2 && index < path.size(); index++) {
             BlockPos nextPos = path.get(index).getPos();
             if (isPlayerInBlocks(player, nextPos)) {
-                nextPathIndex = index + 1;
-                if (nextPathIndex >= path.size()) {
+                targetNodeIndex = index + 1;
+                if (targetNodeIndex >= path.size()) {
                     terminate(PathProcessorResult.ARRIVED);
                 } else {
-                    this.onAdvance.accept(nextPos);
+                    this.onAdvance.accept(index, nextPos);
                 }
                 return;
             }
@@ -148,7 +162,7 @@ public class WalkPathProcessor implements Task, UpdateListener {
 
     private boolean notOffPath(ClientPlayerEntity player) {
         BlockPos playerPos = player.getBlockPos();
-        for (int index = nextPathIndex; index < nextPathIndex + 2 && index < path.size(); index++) {
+        for (int index = targetNodeIndex; index < targetNodeIndex + 2 && index < path.size(); index++) {
             BlockPos nextPos = path.get(index).getPos();
             if (nextPos.equals(playerPos))
                 return true;
@@ -157,7 +171,7 @@ public class WalkPathProcessor implements Task, UpdateListener {
     }
 
     private void ensurePathValidity() {
-        int startIndex = Math.max(nextPathIndex - 1, 0);
+        int startIndex = Math.max(targetNodeIndex - 1, 0);
         List<Node> pathAhead = path.subList(startIndex, path.size());
         if (!pathValidator.verify(pathAhead)) {
             terminate(PathProcessorResult.INVALID_PATH);
