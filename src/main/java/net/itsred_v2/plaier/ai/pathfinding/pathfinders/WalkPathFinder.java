@@ -20,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
 public abstract class WalkPathFinder extends PathFinder {
 
     private static final Set<Block> DANGEROUS_BLOCKS = Set.of(
-            Blocks.FIRE, Blocks.SOUL_FIRE, Blocks.LAVA, Blocks.WATER, Blocks.POWDER_SNOW
+            Blocks.FIRE, Blocks.SOUL_FIRE, Blocks.LAVA, Blocks.WATER, Blocks.POWDER_SNOW, Blocks.COBWEB
     );
     private static final int MAX_FALL_HEIGHT = 3;
     public static final double STRAIGHT_WEIGHT = 1;
