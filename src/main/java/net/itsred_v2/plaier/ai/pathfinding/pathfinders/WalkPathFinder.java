@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.ai.pathfinding.Node;
 import net.itsred_v2.plaier.ai.pathfinding.PathFinder;
 import net.itsred_v2.plaier.utils.BlockHelper;
@@ -66,7 +65,7 @@ public abstract class WalkPathFinder extends PathFinder {
         } else if (isBlockTraversable(pos.down())) {
             return getNeighborsOfFlyingNode(parentNode);
         } else {
-            PlaierClient.LOGGER.info("Found unsupported block wile pathfinding: {} {}", blockHelper.getBlockState(pos.down()), pos.down());
+//            PlaierClient.LOGGER.info("Found unsupported block wile pathfinding: {} {}", blockHelper.getBlockState(pos.down()), pos.down());
             return new ArrayList<>();
         }
     }

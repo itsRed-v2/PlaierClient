@@ -72,42 +72,26 @@ public class WalkPathProcessor implements Task, UpdateListener {
 
     @Override
     public void onUpdate() {
-        if (state == TaskState.DONE) return;
+        if (this.state == TaskState.DONE) return;
 
         ClientPlayerEntity player = PlaierClient.getPlayer();
 
-        // Incrementing the targetNodeIndex if the player has reached the next position
-        advance(player);
-        // The task may be terminated in the advance() call, we need to take it into account
-        if (this.state == TaskState.DONE) return;
+        checkOffPath(player); // checking if the player is lost off the path
+        ensurePathValidity(); // making sure the path is still valid
+        if (this.state == TaskState.DONE) return; // Task may be terminated by checkOffPath() and ensurePathValidity()
 
-        BlockPos playerPos = player.getBlockPos();
-        BlockPos nextPos = path.get(targetNodeIndex).getPos();
+        advance(player); // Incrementing the targetNodeIndex if the player has reached the next position
+        if (this.state == TaskState.DONE) return; // Task may be terminated by advance()
 
-        MovementUtils.lockControls();
-
-        // Walk towards the block
-        if (!isPlayerAboveBlock(player, nextPos)) {
-            RotationUtils.facePosHorizontally(Vec3d.ofCenter(nextPos));
-            MovementUtils.forward(true);
-        }
-
-        // If the block is 1 above the player, jump
-        if (playerPos.getY() + 1 == nextPos.getY()) {
-            MovementUtils.setJumping(true);
-        }
-
-        // checking if the player is lost off the path
-        checkOffPath(player);
-        // making sure the path is still valid
-        ensurePathValidity();
+        // Applying the needed controls to get the player to the target node.
+        control(player);
     }
 
     private void advance(ClientPlayerEntity player) {
         // If the player is in one of the next positions, advance to this position.
         for (int index = targetNodeIndex; index < targetNodeIndex + 2 && index < path.size(); index++) {
             BlockPos nextPos = path.get(index).getPos();
-            if (isPlayerInBlocks(player, nextPos)) {
+            if (isPlayerAt(player, nextPos)) {
                 targetNodeIndex = index + 1;
                 if (targetNodeIndex >= path.size()) {
                     terminate(PathProcessorResult.ARRIVED);
@@ -119,16 +103,31 @@ public class WalkPathProcessor implements Task, UpdateListener {
         }
     }
 
-    private boolean isPlayerInBlocks(ClientPlayerEntity player, BlockPos pos) {
-        Box playerBox = player.getBoundingBox();
-        return playerBox.minX >= pos.getX()
-                && playerBox.maxX <= pos.getX() + 1
-                && playerBox.minY >= pos.getY()
-                // Notice the next line is missing in the method isPlayerAboveBlock()
-                // It is the only difference between these two methods.
-                && playerBox.maxY <= pos.getY() + 2
-                && playerBox.minZ >= pos.getZ()
-                && playerBox.maxZ <= pos.getZ() + 1;
+    private void control(ClientPlayerEntity player) {
+        BlockPos nextPos = path.get(targetNodeIndex).getPos();
+
+        MovementUtils.lockControls();
+        MovementUtils.disableFlying();
+
+        // Walk towards the block
+        if (!isPlayerAboveBlock(player, nextPos)) {
+            RotationUtils.facePosHorizontally(Vec3d.ofCenter(nextPos));
+            MovementUtils.forward(true);
+        }
+
+        boolean shouldJump = shouldJumpBefore(player, targetNodeIndex);
+        MovementUtils.setJumping(shouldJump);
+        MovementUtils.setSprinting(!shouldJump);
+    }
+
+    private boolean shouldJumpBefore(ClientPlayerEntity player, int nodeIndex) {
+        nodeIndex = Math.min(path.size() - 1, nodeIndex);
+        BlockPos pos = path.get(nodeIndex).getPos();
+        return player.getBlockPos().getY() == pos.getY() - 1;
+    }
+
+    private boolean isPlayerAt(ClientPlayerEntity player, BlockPos pos) {
+        return player.getBlockPos().equals(pos);
     }
 
     private boolean isPlayerAboveBlock(ClientPlayerEntity player, BlockPos pos) {

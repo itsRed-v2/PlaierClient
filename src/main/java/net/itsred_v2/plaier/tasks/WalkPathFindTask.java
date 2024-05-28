@@ -174,6 +174,10 @@ public class WalkPathFindTask implements Task {
     private void onPathProcessorAdvance(int currentIndex, BlockPos currentPos) {
         if (!currentPos.isWithinDistance(this.lastPathfindingStart, 32)) {
             int updateIndex = currentIndex + 5;
+            // The game would crash from index ouf of bounds if updateIndex were greater than the path length...
+            // And if we're close to the end of the path, aka the destination, it is not so useful to update the path.
+            if (updateIndex >= path.size())
+                return;
             updatePath(updateIndex);
         }
     }
