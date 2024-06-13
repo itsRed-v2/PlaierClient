@@ -15,9 +15,9 @@ public class StopTaskCmd implements Command {
 
         boolean success = session.getTaskManager().stopTask();
         if (success) {
-            Messenger.send("Stopped current task.");
+            Messenger.chat("Stopped current task.");
         } else {
-            Messenger.send("No task is running.");
+            Messenger.chat("No task is running.");
         }
     }
 

@@ -11,7 +11,7 @@ import net.itsred_v2.plaier.commands.LookAtCmd;
 import net.itsred_v2.plaier.commands.PathFindCmd;
 import net.itsred_v2.plaier.commands.SayCmd;
 import net.itsred_v2.plaier.commands.StopTaskCmd;
-import net.itsred_v2.plaier.commands.WalkCmd;
+import net.itsred_v2.plaier.commands.LogCmd;
 import net.itsred_v2.plaier.events.ChatOutputListener;
 import net.itsred_v2.plaier.utils.Messenger;
 
@@ -23,7 +23,7 @@ public class CommandProcessor implements ChatOutputListener {
         COMMAND_MAP.put("help", new HelpCommand());
         COMMAND_MAP.put("echo", new EchoCmd());
         COMMAND_MAP.put("say", new SayCmd());
-        COMMAND_MAP.put("walk", new WalkCmd());
+        COMMAND_MAP.put("log", new LogCmd());
         COMMAND_MAP.put("stoptask", new StopTaskCmd());
         COMMAND_MAP.put("lookat", new LookAtCmd());
         COMMAND_MAP.put("path", new PathFindCmd());
@@ -44,8 +44,8 @@ public class CommandProcessor implements ChatOutputListener {
         Command cmd = COMMAND_MAP.get(commandName);
 
         if (cmd == null) {
-            Messenger.send("§cUnknown command: §6%s", commandName);
-            Messenger.send("§cType :help for a list of available commands.");
+            Messenger.chat("§cUnknown command: §6%s", commandName);
+            Messenger.chat("§cType :help for a list of available commands.");
         } else {
             cmd.onCommand(args);
         }

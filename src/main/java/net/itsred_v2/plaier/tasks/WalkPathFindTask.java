@@ -77,7 +77,7 @@ public class WalkPathFindTask implements Task {
         if (isUpdate) {
             renderPathUpdating(updateIndex);
         }
-        Messenger.send(isUpdate ? "Updating path..." : "Pathfinding...");
+        Messenger.log(isUpdate ? "Updating path..." : "Pathfinding...");
 
         BlockPos start = isUpdate ? path.get(updateIndex).getPos() : PlaierClient.getPlayer().getBlockPos();
         lastPathfindingStart = start;
@@ -96,28 +96,28 @@ public class WalkPathFindTask implements Task {
                     path.subList(updateIndex, path.size()).clear(); // removes all nodes after updateIndex (included)
                     path.addAll(output.path()); // appends all nodes from the newly processed path
                     pathProcessor.replacePath(path);
-                    Messenger.send("Path updated in %d ms.", output.calculationTime());
+                    Messenger.log("Path updated in %d ms.", output.calculationTime());
                 } else {
                     path = output.path();
                     startPathProcessor(output.pathValidator(), path);
-                    Messenger.send("Path found in %d ms.", output.calculationTime());
+                    Messenger.log("Path found in %d ms.", output.calculationTime());
                 }
                 renderPath();
             }
             case INVALID_START -> {
-                Messenger.send("§cError: §fInaccessible starting position.");
+                Messenger.chat("§cError: §fInaccessible starting position.");
                 terminate();
             }
             case INVALID_GOAL -> {
-                Messenger.send("§cError: §fInaccessible goal position.");
+                Messenger.chat("§cError: §fInaccessible goal position.");
                 terminate();
             }
             case REACHED_ITERATION_LIMIT -> {
-                Messenger.send("§cReached iteration limit: could not find a path to the goal. It may be unreachable or too far away.");
+                Messenger.chat("§cReached iteration limit: could not find a path to the goal. It may be unreachable or too far away.");
                 terminate();
             }
             case TRAPPED -> {
-                Messenger.send("§cThe goal is unreachable. The pathfinder ran out of paths to explore.");
+                Messenger.chat("§cThe goal is unreachable. The pathfinder ran out of paths to explore.");
                 terminate();
             }
             case UNHANDLED_ERROR -> terminate();
@@ -154,16 +154,16 @@ public class WalkPathFindTask implements Task {
     private void onPathProcessorDone(PathProcessorResult result) {
         switch (result) {
             case ARRIVED -> {
-                Messenger.send("§aSuccessfully arrived at %d %d %d. Releasing controls.", goal.getX(), goal.getY(), goal.getZ());
+                Messenger.chat("§aSuccessfully arrived at %d %d %d. Releasing controls.", goal.getX(), goal.getY(), goal.getZ());
                 terminate();
             }
             case OFF_PATH -> {
-                Messenger.send("§6Player is off path: Recalculating path...");
+                Messenger.log("§6Player is off path: Reprocessing path...");
                 pathProcessor = null;
                 startPathFinding();
             }
             case INVALID_PATH -> {
-                Messenger.send("§6The path became invalid: Recalculating path...");
+                Messenger.log("§6The path became invalid: Reprocessing path...");
                 pathProcessor = null;
                 startPathFinding();
             }

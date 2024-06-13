@@ -10,6 +10,7 @@ import net.itsred_v2.plaier.events.BeforeDebugRenderListener.BeforeDebugRenderEv
 import net.itsred_v2.plaier.events.ChatOutputListener;
 import net.itsred_v2.plaier.events.LeaveGameSessionListener;
 import net.itsred_v2.plaier.events.StartGameSessionListener;
+import net.itsred_v2.plaier.rendering.LogHud;
 import net.itsred_v2.plaier.session.Session;
 import net.itsred_v2.plaier.session.SessionLifeManager;
 import net.minecraft.client.MinecraftClient;
@@ -26,6 +27,8 @@ public class PlaierClient implements ClientModInitializer {
     private static final EventManager eventManager = new EventManager();
     private static final SessionLifeManager sessionManager = new SessionLifeManager();
 
+    private static LogHud logHud;
+
     /**
      * Runs the mod initializer on the client environment.
      */
@@ -38,6 +41,8 @@ public class PlaierClient implements ClientModInitializer {
         eventManager.add(ChatOutputListener.class, new CommandProcessor());
         eventManager.add(StartGameSessionListener.class, sessionManager);
         eventManager.add(LeaveGameSessionListener.class, sessionManager);
+
+        logHud = new LogHud();
     }
 
     public static EventManager getEventManager() {
@@ -54,6 +59,10 @@ public class PlaierClient implements ClientModInitializer {
 
     public static ClientWorld getWorld() {
         return Objects.requireNonNull(MC.world);
+    }
+
+    public static LogHud getLogHud() {
+        return logHud;
     }
 
 }

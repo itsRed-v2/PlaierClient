@@ -17,7 +17,7 @@ public class PathFindCmd implements Command {
         Session session = PlaierClient.getCurrentSession();
 
         if (args.size() != 3) {
-            Messenger.send("§cInvalid syntax.");
+            Messenger.chat("§cInvalid syntax.");
             return;
         }
 
@@ -27,7 +27,7 @@ public class PathFindCmd implements Command {
             posY = Integer.parseInt(args.get(1));
             posZ = Integer.parseInt(args.get(2));
         } catch (NumberFormatException e) {
-            Messenger.send("§cUnable to parse coordinates.");
+            Messenger.chat("§cUnable to parse coordinates.");
             return;
         }
 
@@ -35,8 +35,10 @@ public class PathFindCmd implements Command {
         Task task = new WalkPathFindTask(goal);
         boolean success = session.getTaskManager().startTask(task);
 
-        if (!success) {
-            Messenger.send("§cAnother task is already running.");
+        if (success) {
+            Messenger.chat("Started pathfinding task.");
+        } else {
+            Messenger.chat("§cAnother task is already running.");
         }
     }
 

@@ -13,9 +13,9 @@ public class HelpCommand implements Command {
     public void onCommand(List<String> args) {
         Set<String> commands = CommandProcessor.COMMAND_MAP.keySet();
 
-        Messenger.send("%d commands available:", commands.size());
+        Messenger.chat("%d commands available:", commands.size());
         for (String commandName : commands) {
-            Messenger.send("§7- §6%s", commandName);
+            Messenger.chat("§7- §6%s", commandName);
         }
     }
 

@@ -17,7 +17,7 @@ public class LookAtCmd implements Command {
         Session session = PlaierClient.getCurrentSession();
 
         if (args.size() != 3) {
-            Messenger.send("§cInvalid syntax.");
+            Messenger.chat("§cInvalid syntax.");
             return;
         }
 

@@ -20,7 +20,7 @@ public class AsyncPathFinderWrapper implements UpdateListener {
 
         thread.setUncaughtExceptionHandler((t, e) -> {
             PlaierClient.LOGGER.error("Unhandled error in the pathfinder thread", e);
-            Messenger.send("§cAn unhandled error occurred in the pathfinder thread.");
+            Messenger.chat("§cAn unhandled error occurred in the pathfinder thread.");
 
             PlaierClient.getEventManager().remove(UpdateListener.class, this);
             PathFinderOutput errorOutput = new PathFinderOutput(PathFinderExitStatus.UNHANDLED_ERROR, null, null, -1);
