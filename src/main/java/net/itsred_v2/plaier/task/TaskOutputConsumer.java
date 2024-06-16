@@ -6,4 +6,6 @@ public interface TaskOutputConsumer {
 
     void fail(String message);
 
+    void success(String message);
+
 }

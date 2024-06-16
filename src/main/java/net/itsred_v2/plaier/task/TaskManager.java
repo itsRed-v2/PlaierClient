@@ -10,6 +10,7 @@ public class TaskManager implements UpdateListener {
 
     private static final String INFO_PREFIX = "§7[Info] §r";
     private static final String FAIL_PREFIX = "§4[Fail] §c";
+    private static final String SUCCESS_PREFIX = "§2[Success] §a";
 
     /**
      * The hud which displays the task output.
@@ -44,6 +45,12 @@ public class TaskManager implements UpdateListener {
             public void fail(String message) {
                 taskOutputHud.addMessage(FAIL_PREFIX + message);
                 Messenger.chat(FAIL_PREFIX + message);
+            }
+
+            @Override
+            public void success(String message) {
+                taskOutputHud.addMessage(SUCCESS_PREFIX + message);
+                Messenger.chat(SUCCESS_PREFIX + message);
             }
         };
     }

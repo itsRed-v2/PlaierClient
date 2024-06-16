@@ -153,7 +153,7 @@ public class WalkPathFindTask extends Task {
     private void onPathProcessorDone(PathProcessorResult result) {
         switch (result) {
             case ARRIVED -> {
-                this.output.info("§aSuccessfully arrived at %d %d %d. Releasing controls.".formatted(goal.getX(), goal.getY(), goal.getZ()));
+                this.output.success("Arrived at %d %d %d.".formatted(goal.getX(), goal.getY(), goal.getZ()));
                 terminate();
             }
             case OFF_PATH -> {
