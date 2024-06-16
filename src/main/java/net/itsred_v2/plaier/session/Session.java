@@ -1,24 +1,24 @@
 package net.itsred_v2.plaier.session;
 
-import net.itsred_v2.plaier.task.TaskLifeManager;
+import net.itsred_v2.plaier.task.TaskManager;
 
 public class Session {
 
-    private final TaskLifeManager taskManager;
+    private final TaskManager taskManager;
 
     private boolean terminated = false;
 
     public Session() {
-        taskManager = new TaskLifeManager();
+        taskManager = new TaskManager();
     }
 
-    public TaskLifeManager getTaskManager() {
+    public TaskManager getTaskManager() {
         throwIfTerminated();
         return taskManager;
     }
 
     public void terminate() {
-        taskManager.stopTask();
+        taskManager.onSessionEnd();
         terminated = true;
     }
 

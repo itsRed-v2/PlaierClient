@@ -14,8 +14,4 @@ public class Messenger {
         player.sendMessage(Text.of(PREFIX + message), false);
     }
 
-    public static void log(String message, Object... formatArgs) {
-        PlaierClient.getLogHud().addMessage(message.formatted(formatArgs));
-    }
-
 }

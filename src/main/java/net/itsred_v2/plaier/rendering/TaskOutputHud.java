@@ -1,12 +1,10 @@
 package net.itsred_v2.plaier.rendering;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.events.GuiRenderListener;
-import net.itsred_v2.plaier.events.StartGameSessionListener;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.util.ChatMessages;
@@ -14,10 +12,10 @@ import net.minecraft.text.OrderedText;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.ColorHelper;
 
-public class LogHud implements GuiRenderListener, StartGameSessionListener {
+public class TaskOutputHud implements GuiRenderListener {
 
     private static final float GUI_SCALE = 0.5f;
-    private static final int BACKGROUND_COLOR = ColorHelper.Argb.getArgb(50, 0, 0, 0);
+    private static final int BACKGROUND_COLOR = ColorHelper.Argb.getArgb(100, 0, 0, 0);
     private static final int TEXT_COLOR = ColorHelper.Argb.getArgb(255, 255, 255, 255);
     private static final int WIDGET_WIDTH = 300;
     private static final int WIDGET_LINE_COUNT = 11;
@@ -26,27 +24,37 @@ public class LogHud implements GuiRenderListener, StartGameSessionListener {
      */
     private static final int WIDGET_PADDING = 2;
     /**
+     * Newly added lines are highlighted with a fading light background.
+     * This controls how long the fading animation takes.
+     */
+    private static final int LINE_HIGHLIGHT_DURATION = 60; // 3 seconds
+
+    /**
      * The lines of text rendered in the widget box
      */
-    private final List<OrderedText> lines = new ArrayList<>();
+    private final List<LogLine> lines = new ArrayList<>();
+    private boolean enabled = false;
 
-    public LogHud() {
+    public void enable() {
+        if (enabled) return;
+        enabled = true;
         PlaierClient.getEventManager().add(GuiRenderListener.class, this);
-        PlaierClient.getEventManager().add(StartGameSessionListener.class, this);
     }
 
-    @Override
-    public void onStartGameSession() {
-        this.lines.clear();
+    public void disable() {
+        if (!enabled) return;
+        enabled = false;
+        PlaierClient.getEventManager().remove(GuiRenderListener.class, this);
     }
 
     @Override
     public void onGuiRender(GuiRenderEvent event) {
         DrawContext context = event.getContext();
-        TextRenderer textRenderer = PlaierClient.MC.textRenderer;
+        TextRenderer textRenderer = PlaierClient.getTextRenderer();
         int lineHeight = textRenderer.fontHeight;
         int widgetHeight = lineHeight * WIDGET_LINE_COUNT + WIDGET_PADDING * 2;
         float windowWidth = context.getScaledWindowWidth() / GUI_SCALE;
+        int tick = PlaierClient.getTicks();
 
         context.getMatrices().push();
         context.getMatrices().scale(GUI_SCALE, GUI_SCALE, 1.0f);
@@ -56,20 +64,33 @@ public class LogHud implements GuiRenderListener, StartGameSessionListener {
 
         for (int i = 0; i < lines.size() && i < WIDGET_LINE_COUNT; i++) {
             int posY = widgetHeight - lineHeight - WIDGET_PADDING - (i * lineHeight);
-            context.drawText(textRenderer, lines.get(i), WIDGET_PADDING, posY, TEXT_COLOR, true);
+            LogLine line = lines.get(i);
+
+            int age = tick - line.addedAt;
+            int bgOpacity = 127 - (127 * age / LINE_HIGHLIGHT_DURATION);
+            if (bgOpacity > 0) {
+                int bgColor = ColorHelper.Argb.getArgb(bgOpacity, 255, 255, 255);
+                context.fill(0, posY, WIDGET_WIDTH, posY + lineHeight, bgColor);
+            }
+            
+            context.drawTextWithShadow(textRenderer, line.content, WIDGET_PADDING, posY, TEXT_COLOR);
         }
 
         context.getMatrices().pop();
     }
 
     public void addMessage(String message) {
+        int addedAt = PlaierClient.getTicks();
         List<OrderedText> newLines = ChatMessages.breakRenderedChatMessageLines(
                 Text.of(message),
                 WIDGET_WIDTH - (WIDGET_PADDING * 2) - 5,
-                PlaierClient.MC.textRenderer
+                PlaierClient.getTextRenderer()
         );
-        Collections.reverse(newLines);
-        this.lines.addAll(0, newLines);
+        for (OrderedText line : newLines) {
+            this.lines.add(0, new LogLine(line, addedAt));
+        }
     }
+
+    private record LogLine(OrderedText content, int addedAt) {}
 
 }

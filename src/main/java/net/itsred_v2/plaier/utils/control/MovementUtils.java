@@ -1,21 +1,26 @@
 package net.itsred_v2.plaier.utils.control;
 
-import static net.itsred_v2.plaier.PlaierClient.MC;
 import net.itsred_v2.plaier.PlaierClient;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.KeyBinding;
 
 public class MovementUtils {
 
+    public static GameOptions options() {
+        return PlaierClient.getOptions();
+    }
+
     public static KeyBinding[] getControlList() {
+        GameOptions options = options();
         return new KeyBinding[] {
-                MC.options.forwardKey,
-                MC.options.leftKey,
-                MC.options.rightKey,
-                MC.options.backKey,
-                MC.options.sneakKey,
-                MC.options.jumpKey,
-                MC.options.sprintKey
+                options.forwardKey,
+                options.leftKey,
+                options.rightKey,
+                options.backKey,
+                options.sneakKey,
+                options.jumpKey,
+                options.sprintKey
         };
     }
 
@@ -31,11 +36,11 @@ public class MovementUtils {
     // TODO: something to prevent autojump
 
     public static void forward(boolean bool) {
-        MC.options.forwardKey.setPressed(bool);
+        options().forwardKey.setPressed(bool);
     }
 
     public static void setJumping(boolean bool) {
-        MC.options.jumpKey.setPressed(bool);
+        options().jumpKey.setPressed(bool);
     }
 
     public static void setSprinting(boolean bool) {

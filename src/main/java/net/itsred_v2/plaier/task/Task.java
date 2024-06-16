@@ -1,11 +1,17 @@
 package net.itsred_v2.plaier.task;
 
-public interface Task {
+public abstract class Task {
 
-    void start();
+    public TaskOutputConsumer output;
 
-    void terminate();
+    public abstract void start();
 
-    boolean isDone();
+    public abstract void terminate();
+
+    public abstract boolean isDone();
+
+    public void setOutput(TaskOutputConsumer output) {
+        this.output = output;
+    }
 
 }

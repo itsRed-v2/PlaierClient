@@ -18,7 +18,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 
-public class WalkPathProcessor implements Task, UpdateListener {
+public class WalkPathProcessor extends Task implements UpdateListener {
 
     private static final int MAX_TICKS_OFF_PATH = 20; // 1 second
 

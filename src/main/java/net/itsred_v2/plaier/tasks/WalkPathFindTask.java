@@ -13,11 +13,10 @@ import net.itsred_v2.plaier.task.Task;
 import net.itsred_v2.plaier.task.TaskState;
 import net.itsred_v2.plaier.tasks.pathProcessing.PathProcessorResult;
 import net.itsred_v2.plaier.tasks.pathProcessing.WalkPathProcessor;
-import net.itsred_v2.plaier.utils.Messenger;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ColorHelper;
 
-public class WalkPathFindTask implements Task {
+public class WalkPathFindTask extends Task {
 
     private final BlockPos goal;
     private PolylineRenderer bluePathRenderer;
@@ -77,7 +76,7 @@ public class WalkPathFindTask implements Task {
         if (isUpdate) {
             renderPathUpdating(updateIndex);
         }
-        Messenger.log(isUpdate ? "Updating path..." : "Pathfinding...");
+        this.output.info(isUpdate ? "Updating path..." : "Pathfinding...");
 
         BlockPos start = isUpdate ? path.get(updateIndex).getPos() : PlaierClient.getPlayer().getBlockPos();
         lastPathfindingStart = start;
@@ -96,28 +95,28 @@ public class WalkPathFindTask implements Task {
                     path.subList(updateIndex, path.size()).clear(); // removes all nodes after updateIndex (included)
                     path.addAll(output.path()); // appends all nodes from the newly processed path
                     pathProcessor.replacePath(path);
-                    Messenger.log("Path updated in %d ms.", output.calculationTime());
+                    this.output.info("Path updated in %d ms.".formatted(output.calculationTime()));
                 } else {
                     path = output.path();
                     startPathProcessor(output.pathValidator(), path);
-                    Messenger.log("Path found in %d ms.", output.calculationTime());
+                    this.output.info("Path found in %d ms.".formatted(output.calculationTime()));
                 }
                 renderPath();
             }
             case INVALID_START -> {
-                Messenger.chat("§cError: §fInaccessible starting position.");
+                this.output.fail("Inaccessible starting position.");
                 terminate();
             }
             case INVALID_GOAL -> {
-                Messenger.chat("§cError: §fInaccessible goal position.");
+                this.output.fail("Inaccessible goal position.");
                 terminate();
             }
             case REACHED_ITERATION_LIMIT -> {
-                Messenger.chat("§cReached iteration limit: could not find a path to the goal. It may be unreachable or too far away.");
+                this.output.fail("Reached iteration limit: could not find a path to the goal. It may be unreachable or too far away.");
                 terminate();
             }
             case TRAPPED -> {
-                Messenger.chat("§cThe goal is unreachable. The pathfinder ran out of paths to explore.");
+                this.output.fail("The goal is unreachable. The pathfinder ran out of paths to explore.");
                 terminate();
             }
             case UNHANDLED_ERROR -> terminate();
@@ -154,16 +153,16 @@ public class WalkPathFindTask implements Task {
     private void onPathProcessorDone(PathProcessorResult result) {
         switch (result) {
             case ARRIVED -> {
-                Messenger.chat("§aSuccessfully arrived at %d %d %d. Releasing controls.", goal.getX(), goal.getY(), goal.getZ());
+                this.output.info("§aSuccessfully arrived at %d %d %d. Releasing controls.".formatted(goal.getX(), goal.getY(), goal.getZ()));
                 terminate();
             }
             case OFF_PATH -> {
-                Messenger.log("§6Player is off path: Reprocessing path...");
+                this.output.info("§6Player is off path: Reprocessing path...");
                 pathProcessor = null;
                 startPathFinding();
             }
             case INVALID_PATH -> {
-                Messenger.log("§6The path became invalid: Reprocessing path...");
+                this.output.info("§6The path became invalid: Reprocessing path...");
                 pathProcessor = null;
                 startPathFinding();
             }
