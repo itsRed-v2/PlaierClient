@@ -31,6 +31,7 @@ public class FreecamHack implements SetCamPosListener, SetCamRotationListener,
         if (enabled) return;
         enabled = true;
 
+        this.controlPlayer = false;
         ClientPlayerEntity player = PlaierClient.getPlayer();
         this.camPos = player.getEyePos();
         this.yaw = player.getYaw();
@@ -56,12 +57,16 @@ public class FreecamHack implements SetCamPosListener, SetCamRotationListener,
         PlaierClient.getEventManager().remove(ChangeLookDirectionListener.class, this);
     }
 
-    public void toggle() {
-        if (enabled) {
-            disable();
-        } else {
-            enable();
-        }
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setControllingPlayer(boolean controlPlayer) {
+        this.controlPlayer = controlPlayer;
+    }
+
+    public boolean isControllingPlayer() {
+        return controlPlayer;
     }
 
     @Override
