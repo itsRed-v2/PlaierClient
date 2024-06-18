@@ -101,7 +101,7 @@ public class FreecamHack implements SetCamPosListener, SetCamRotationListener,
         // If we are controlling the player and not the camera,
         // OR if any screen is open (such as chat or inventory)
         // then, don't process camera movements.
-        if (controlPlayer || PlaierClient.MC.currentScreen != null) {
+        if (controlPlayer || PlaierClient.MC.getCurrentScreen() != null) {
             this.movement = Vec3d.ZERO;
             return;
         }
@@ -116,7 +116,7 @@ public class FreecamHack implements SetCamPosListener, SetCamRotationListener,
         double movementRight = 0;
         double movementUp = 0;
 
-        GameOptions options = PlaierClient.getOptions();
+        GameOptions options = PlaierClient.MC.getOptions();
         if (isKeyPressed(options.forwardKey)) movementForward += 1;
         if (isKeyPressed(options.backKey)) movementForward -= 1;
         if (isKeyPressed(options.rightKey)) movementRight += 1;
@@ -135,7 +135,7 @@ public class FreecamHack implements SetCamPosListener, SetCamRotationListener,
     public static boolean isKeyPressed(KeyBinding keyBinding) {
         // Hacky one-liner to check if a given key-binding is actually pressed.
         // We can't just do keyBinding.isPressed() because values are messed up by the MovementUtils.lockControls() call.
-        return InputUtil.isKeyPressed(PlaierClient.MC.getWindow().getHandle(), KeyBindingHelper.getBoundKeyOf(keyBinding).getCode());
+        return InputUtil.isKeyPressed(PlaierClient.MC.getWindowHandle(), KeyBindingHelper.getBoundKeyOf(keyBinding).getCode());
     }
 
     @Override

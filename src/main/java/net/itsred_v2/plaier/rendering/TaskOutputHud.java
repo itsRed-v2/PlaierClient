@@ -50,11 +50,11 @@ public class TaskOutputHud implements GuiRenderListener {
     @Override
     public void onGuiRender(GuiRenderEvent event) {
         DrawContext context = event.getContext();
-        TextRenderer textRenderer = PlaierClient.getTextRenderer();
+        TextRenderer textRenderer = PlaierClient.MC.getTextRenderer();
         int lineHeight = textRenderer.fontHeight;
         int widgetHeight = lineHeight * WIDGET_LINE_COUNT + WIDGET_PADDING * 2;
         float windowWidth = context.getScaledWindowWidth() / GUI_SCALE;
-        int tick = PlaierClient.getTicks();
+        int tick = PlaierClient.MC.getTicks();
 
         context.getMatrices().push();
         context.getMatrices().scale(GUI_SCALE, GUI_SCALE, 1.0f);
@@ -80,11 +80,11 @@ public class TaskOutputHud implements GuiRenderListener {
     }
 
     public void addMessage(String message) {
-        int addedAt = PlaierClient.getTicks();
+        int addedAt = PlaierClient.MC.getTicks();
         List<OrderedText> newLines = ChatMessages.breakRenderedChatMessageLines(
                 Text.of(message),
                 WIDGET_WIDTH - (WIDGET_PADDING * 2) - 5,
-                PlaierClient.getTextRenderer()
+                PlaierClient.MC.getTextRenderer()
         );
         for (OrderedText line : newLines) {
             this.lines.add(0, new LogLine(line, addedAt));

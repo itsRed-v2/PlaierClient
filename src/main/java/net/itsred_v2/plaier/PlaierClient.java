@@ -1,7 +1,5 @@
 package net.itsred_v2.plaier;
 
-import java.util.Objects;
-
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.itsred_v2.plaier.command.CommandProcessor;
@@ -12,10 +10,9 @@ import net.itsred_v2.plaier.events.LeaveGameSessionListener;
 import net.itsred_v2.plaier.events.StartGameSessionListener;
 import net.itsred_v2.plaier.session.Session;
 import net.itsred_v2.plaier.session.SessionLifeManager;
+import net.itsred_v2.plaier.utils.MCInterface;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.world.ClientWorld;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,9 +21,10 @@ public class PlaierClient implements ClientModInitializer {
 
     private static final String MOD_ID = "plaier";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-    public static final MinecraftClient MC = MinecraftClient.getInstance();
-    private static final EventManager eventManager = new EventManager();
-    private static final SessionLifeManager sessionManager = new SessionLifeManager();
+    public static final MCInterface MC = new MCInterface(MinecraftClient.getInstance());
+
+    private static final EventManager EVENT_MANAGER = new EventManager();
+    private static final SessionLifeManager SESSION_MANAGER = new SessionLifeManager();
 
     /**
      * Runs the mod initializer on the client environment.
@@ -36,38 +34,25 @@ public class PlaierClient implements ClientModInitializer {
         LOGGER.info("Plaier is playing !");
 
         WorldRenderEvents.BEFORE_DEBUG_RENDER.register(context -> EventManager.fire(new BeforeDebugRenderEvent(context)));
-
-        eventManager.add(ChatOutputListener.class, new CommandProcessor());
-        eventManager.add(StartGameSessionListener.class, sessionManager);
-        eventManager.add(LeaveGameSessionListener.class, sessionManager);
+        EVENT_MANAGER.add(ChatOutputListener.class, new CommandProcessor());
+        EVENT_MANAGER.add(StartGameSessionListener.class, SESSION_MANAGER);
+        EVENT_MANAGER.add(LeaveGameSessionListener.class, SESSION_MANAGER);
     }
 
     public static EventManager getEventManager() {
-        return eventManager;
+        return EVENT_MANAGER;
     }
 
     public static Session getCurrentSession() {
-        return sessionManager.getCurrentSession();
+        return SESSION_MANAGER.getCurrentSession();
     }
 
     public static ClientPlayerEntity getPlayer() {
-        return Objects.requireNonNull(MC.player);
+        return MC.getPlayer();
     }
 
     public static ClientWorld getWorld() {
-        return Objects.requireNonNull(MC.world);
-    }
-
-    public static TextRenderer getTextRenderer() {
-        return MC.textRenderer;
-    }
-
-    public static int getTicks() {
-        return MC.inGameHud.getTicks();
-    }
-
-    public static GameOptions getOptions() {
-        return MC.options;
+        return MC.getWorld();
     }
 
 }

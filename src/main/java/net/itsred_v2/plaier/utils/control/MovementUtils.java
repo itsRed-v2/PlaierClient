@@ -8,7 +8,7 @@ import net.minecraft.client.option.KeyBinding;
 public class MovementUtils {
 
     public static GameOptions options() {
-        return PlaierClient.getOptions();
+        return PlaierClient.MC.getOptions();
     }
 
     public static KeyBinding[] getControlList() {
