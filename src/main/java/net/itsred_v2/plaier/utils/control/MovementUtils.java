@@ -21,6 +21,7 @@ public class MovementUtils {
                 options.sneakKey,
                 options.jumpKey,
                 options.sprintKey
+                // TODO : also lock attack and use key, and maybe more
         };
     }
 

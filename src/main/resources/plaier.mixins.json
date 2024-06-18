@@ -10,7 +10,9 @@
     "ClientPlayNetworkHandlerMixin",
     "MinecraftClientMixin",
     "ChatScreenMixin",
-    "InGameHudMixin"
+    "InGameHudMixin",
+    "CameraMixin",
+    "MouseMixin"
   ],
   "injectors": {
     "defaultRequire": 1
