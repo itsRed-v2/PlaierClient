@@ -13,7 +13,6 @@ import net.itsred_v2.plaier.session.SessionLifeManager;
 import net.itsred_v2.plaier.utils.MCInterface;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.world.ClientWorld;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,10 +48,6 @@ public class PlaierClient implements ClientModInitializer {
 
     public static ClientPlayerEntity getPlayer() {
         return MC.getPlayer();
-    }
-
-    public static ClientWorld getWorld() {
-        return MC.getWorld();
     }
 
 }

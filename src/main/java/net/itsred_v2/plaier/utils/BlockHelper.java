@@ -1,16 +1,16 @@
 package net.itsred_v2.plaier.utils;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkSectionPos;
+import net.minecraft.world.WorldView;
 import org.jetbrains.annotations.Nullable;
 
 public class BlockHelper {
 
-    private final ClientWorld world;
+    private final WorldView world;
 
-    public BlockHelper(ClientWorld world) {
+    public BlockHelper(WorldView world) {
         this.world = world;
     }
 

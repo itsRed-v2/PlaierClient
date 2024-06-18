@@ -80,7 +80,7 @@ public class WalkPathFindTask extends Task {
 
         BlockPos start = isUpdate ? path.get(updateIndex).getPos() : PlaierClient.getPlayer().getBlockPos();
         lastPathfindingStart = start;
-        PathFinder pathFinder = new ExplorerWalkPathFinder(PlaierClient.getWorld(), start, goal);
+        PathFinder pathFinder = new ExplorerWalkPathFinder(PlaierClient.MC.getWorldView(), start, goal);
 
         if (pathFinderWrapper != null)
             pathFinderWrapper.cancel();

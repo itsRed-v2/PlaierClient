@@ -11,10 +11,10 @@ import net.itsred_v2.plaier.utils.BlockHelper;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.world.WorldView;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class WalkPathFinder extends PathFinder {
@@ -27,10 +27,10 @@ public abstract class WalkPathFinder extends PathFinder {
     public static final double DIAGONAL_WEIGHT = 1.414;
     public static final double VERTICAL_WEIGHT = 0.2;
 
-    public final ClientWorld world;
+    public final WorldView world;
     public final BlockHelper blockHelper;
 
-    public WalkPathFinder(ClientWorld world, BlockPos start, BlockPos goal) {
+    public WalkPathFinder(WorldView world, BlockPos start, BlockPos goal) {
         super(start, goal);
         this.world = world;
         this.blockHelper = new BlockHelper(world);

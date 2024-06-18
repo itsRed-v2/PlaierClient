@@ -7,7 +7,7 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.option.GameOptions;
-import net.minecraft.client.world.ClientWorld;
+import net.minecraft.world.WorldView;
 
 public class MCInterface {
 
@@ -21,7 +21,7 @@ public class MCInterface {
         return Objects.requireNonNull(client.player);
     }
 
-    public ClientWorld getWorld() {
+    public WorldView getWorldView() {
         return Objects.requireNonNull(client.world);
     }
 

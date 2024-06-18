@@ -2,12 +2,12 @@ package net.itsred_v2.plaier.ai.pathfinding.pathfinders;
 
 import java.util.Set;
 
-import net.minecraft.client.world.ClientWorld;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.WorldView;
 
 public class ExplorerWalkPathFinder extends WalkPathFinder {
 
-    public ExplorerWalkPathFinder(ClientWorld world, BlockPos start, BlockPos goal) {
+    public ExplorerWalkPathFinder(WorldView world, BlockPos start, BlockPos goal) {
         super(world, start, goal);
     }
 
