@@ -15,6 +15,7 @@ import net.minecraft.util.math.ColorHelper;
 public class TaskOutputHud implements GuiRenderListener {
 
     private static final float GUI_SCALE = 0.5f;
+    private static final int BAR_BACKGROUND_COLOR = ColorHelper.Argb.getArgb(120, 0, 0, 0);
     private static final int BACKGROUND_COLOR = ColorHelper.Argb.getArgb(100, 0, 0, 0);
     private static final int TEXT_COLOR = ColorHelper.Argb.getArgb(255, 255, 255, 255);
     private static final int WIDGET_WIDTH = 300;
@@ -60,6 +61,14 @@ public class TaskOutputHud implements GuiRenderListener {
         context.getMatrices().scale(GUI_SCALE, GUI_SCALE, 1.0f);
         context.getMatrices().translate(windowWidth - WIDGET_WIDTH - 4, 4, 50.0f);
 
+        // Drawing the widget's top bar
+        int barHeight = textRenderer.fontHeight + WIDGET_PADDING * 3;
+        context.fill(0, 0, WIDGET_WIDTH, barHeight, BAR_BACKGROUND_COLOR);
+        context.drawTextWithShadow(textRenderer, "§3Plaier §7§l» §fTask output", WIDGET_PADDING*2, WIDGET_PADDING*2, TEXT_COLOR);
+
+        // Drawing the widget's content
+        context.getMatrices().translate(0, barHeight, 0);
+        
         context.fill(0, 0, WIDGET_WIDTH, widgetHeight, BACKGROUND_COLOR);
 
         for (int i = 0; i < lines.size() && i < WIDGET_LINE_COUNT; i++) {
