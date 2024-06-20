@@ -21,6 +21,7 @@ public class PlaierClient implements ClientModInitializer {
     private static final String MOD_ID = "plaier";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
     public static final MCInterface MC = new MCInterface(MinecraftClient.getInstance());
+    public static final DebugOptions DEBUG_OPTIONS = new DebugOptions();
 
     private static final EventManager EVENT_MANAGER = new EventManager();
     private static final SessionLifeManager SESSION_MANAGER = new SessionLifeManager();

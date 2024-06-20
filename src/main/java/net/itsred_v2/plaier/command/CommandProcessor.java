@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import net.itsred_v2.plaier.commands.DebugCmd;
 import net.itsred_v2.plaier.commands.EchoCmd;
 import net.itsred_v2.plaier.commands.FreecamCmd;
 import net.itsred_v2.plaier.commands.HelpCommand;
@@ -27,6 +28,7 @@ public class CommandProcessor implements ChatOutputListener {
         COMMAND_MAP.put("lookat", new LookAtCmd());
         COMMAND_MAP.put("path", new PathFindCmd());
         COMMAND_MAP.put("fc", new FreecamCmd());
+        COMMAND_MAP.put("debug", new DebugCmd());
     }
 
     @Override

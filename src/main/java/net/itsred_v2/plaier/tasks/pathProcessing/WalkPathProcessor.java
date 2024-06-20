@@ -9,6 +9,7 @@ import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.ai.pathfinding.Node;
 import net.itsred_v2.plaier.ai.pathfinding.PathFinder;
 import net.itsred_v2.plaier.events.UpdateListener;
+import net.itsred_v2.plaier.rendering.CubeHighlighter;
 import net.itsred_v2.plaier.task.Task;
 import net.itsred_v2.plaier.task.TaskState;
 import net.itsred_v2.plaier.utils.control.MovementUtils;
@@ -21,6 +22,7 @@ import net.minecraft.util.math.Vec3d;
 public class WalkPathProcessor extends Task implements UpdateListener {
 
     private static final int MAX_TICKS_OFF_PATH = 20; // 1 second
+    public static final CubeHighlighter debugRenderer = new CubeHighlighter(1.0f, 0.0f, 0.0f, 0.8f);
 
     private TaskState state = TaskState.READY;
     private final PathFinder.PathValidator pathValidator;
@@ -59,6 +61,7 @@ public class WalkPathProcessor extends Task implements UpdateListener {
         MovementUtils.lockControls(); // resetting controls
 
         this.onArrive.accept(result);
+        debugRenderer.highlightedPos = null;
     }
 
     @Override
@@ -96,7 +99,10 @@ public class WalkPathProcessor extends Task implements UpdateListener {
                 if (targetNodeIndex >= path.size()) {
                     terminate(PathProcessorResult.ARRIVED);
                 } else {
+                    // Trigger the onAdvance callback
                     this.onAdvance.accept(index, nextPos);
+                    // update the debug renderer
+                    this.debugRenderer.highlightedPos = path.get(targetNodeIndex).getPos();
                 }
                 return;
             }
