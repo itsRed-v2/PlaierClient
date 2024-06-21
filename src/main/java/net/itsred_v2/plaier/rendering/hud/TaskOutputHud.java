@@ -1,10 +1,11 @@
-package net.itsred_v2.plaier.rendering;
+package net.itsred_v2.plaier.rendering.hud;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.events.GuiRenderListener;
+import net.itsred_v2.plaier.utils.Toggleable;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.util.ChatMessages;
@@ -12,7 +13,7 @@ import net.minecraft.text.OrderedText;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.ColorHelper;
 
-public class TaskOutputHud implements GuiRenderListener {
+public class TaskOutputHud extends Toggleable implements GuiRenderListener {
 
     private static final float GUI_SCALE = 0.5f;
     private static final int BAR_BACKGROUND_COLOR = ColorHelper.Argb.getArgb(120, 0, 0, 0);
@@ -34,17 +35,14 @@ public class TaskOutputHud implements GuiRenderListener {
      * The lines of text rendered in the widget box
      */
     private final List<LogLine> lines = new ArrayList<>();
-    private boolean enabled = false;
 
-    public void enable() {
-        if (enabled) return;
-        enabled = true;
+    @Override
+    protected void onEnable() {
         PlaierClient.getEventManager().add(GuiRenderListener.class, this);
     }
 
-    public void disable() {
-        if (!enabled) return;
-        enabled = false;
+    @Override
+    protected void onDisable() {
         PlaierClient.getEventManager().remove(GuiRenderListener.class, this);
     }
 

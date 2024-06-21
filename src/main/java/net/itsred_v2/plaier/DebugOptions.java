@@ -1,6 +1,6 @@
 package net.itsred_v2.plaier;
 
-import net.itsred_v2.plaier.rendering.PressedKeysHud;
+import net.itsred_v2.plaier.rendering.hud.PressedKeysHud;
 import net.itsred_v2.plaier.tasks.pathProcessing.WalkPathProcessor;
 
 public class DebugOptions {

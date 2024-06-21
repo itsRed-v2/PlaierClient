@@ -8,6 +8,7 @@ import net.itsred_v2.plaier.events.LeaveGameSessionListener;
 import net.itsred_v2.plaier.events.SetCamPosListener;
 import net.itsred_v2.plaier.events.SetCamRotationListener;
 import net.itsred_v2.plaier.events.PreUpdateListener;
+import net.itsred_v2.plaier.utils.Toggleable;
 import net.itsred_v2.plaier.utils.control.MovementUtils;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.option.GameOptions;
@@ -16,21 +17,18 @@ import net.minecraft.client.util.InputUtil;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
-public class FreecamHack implements SetCamPosListener, SetCamRotationListener,
+public class FreecamHack extends Toggleable implements SetCamPosListener, SetCamRotationListener,
         AfterCameraUpdateListener, LeaveGameSessionListener, PreUpdateListener,
         ChangeLookDirectionListener {
 
-    private boolean enabled = false;
     private Vec3d camPos;
     private float yaw;
     private float pitch;
     private Vec3d movement = Vec3d.ZERO;
     private boolean controlPlayer = false;
 
-    public void enable() {
-        if (enabled) return;
-        enabled = true;
-
+    @Override
+    protected void onEnable() {
         this.controlPlayer = false;
         ClientPlayerEntity player = PlaierClient.getPlayer();
         this.camPos = player.getEyePos();
@@ -45,20 +43,14 @@ public class FreecamHack implements SetCamPosListener, SetCamRotationListener,
         PlaierClient.getEventManager().add(ChangeLookDirectionListener.class, this);
     }
 
-    public void disable() {
-        if (!enabled) return;
-        enabled = false;
-
+    @Override
+    protected void onDisable() {
         PlaierClient.getEventManager().remove(SetCamPosListener.class, this);
         PlaierClient.getEventManager().remove(SetCamRotationListener.class, this);
         PlaierClient.getEventManager().remove(AfterCameraUpdateListener.class, this);
         PlaierClient.getEventManager().remove(LeaveGameSessionListener.class, this);
         PlaierClient.getEventManager().remove(PreUpdateListener.class, this);
         PlaierClient.getEventManager().remove(ChangeLookDirectionListener.class, this);
-    }
-
-    public boolean isEnabled() {
-        return enabled;
     }
 
     public void setControllingPlayer(boolean controlPlayer) {

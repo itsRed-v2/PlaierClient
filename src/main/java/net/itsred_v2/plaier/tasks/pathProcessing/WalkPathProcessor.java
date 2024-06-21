@@ -9,7 +9,7 @@ import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.ai.pathfinding.Node;
 import net.itsred_v2.plaier.ai.pathfinding.PathFinder;
 import net.itsred_v2.plaier.events.UpdateListener;
-import net.itsred_v2.plaier.rendering.BoxRenderer;
+import net.itsred_v2.plaier.rendering.world.BoxRenderer;
 import net.itsred_v2.plaier.task.Task;
 import net.itsred_v2.plaier.task.TaskState;
 import net.itsred_v2.plaier.utils.control.MovementUtils;

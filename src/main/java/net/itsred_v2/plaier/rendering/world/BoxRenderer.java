@@ -1,10 +1,11 @@
-package net.itsred_v2.plaier.rendering;
+package net.itsred_v2.plaier.rendering.world;
 
 import java.util.Objects;
 
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.events.BeforeDebugRenderListener;
+import net.itsred_v2.plaier.utils.Toggleable;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -12,14 +13,13 @@ import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 
-public class BoxRenderer implements BeforeDebugRenderListener {
+public class BoxRenderer extends Toggleable implements BeforeDebugRenderListener {
 
     public final float red;
     public final float green;
     public final float blue;
     public final float alpha;
     public Box box = null;
-    private boolean enabled = false;
 
     public BoxRenderer(float red, float green, float blue, float alpha) {
         this.red = red;
@@ -28,15 +28,13 @@ public class BoxRenderer implements BeforeDebugRenderListener {
         this.alpha = alpha;
     }
 
-    public void enable() {
-        if (enabled) return;
-        enabled = true;
+    @Override
+    protected void onEnable() {
         PlaierClient.getEventManager().add(BeforeDebugRenderListener.class, this);
     }
 
-    public void disable() {
-        if (!enabled) return;
-        enabled = false;
+    @Override
+    protected void onDisable() {
         PlaierClient.getEventManager().remove(BeforeDebugRenderListener.class, this);
     }
 

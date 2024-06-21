@@ -8,7 +8,7 @@ import net.itsred_v2.plaier.ai.pathfinding.Node;
 import net.itsred_v2.plaier.ai.pathfinding.PathFinder;
 import net.itsred_v2.plaier.ai.pathfinding.PathFinderOutput;
 import net.itsred_v2.plaier.ai.pathfinding.pathfinders.ExplorerWalkPathFinder;
-import net.itsred_v2.plaier.rendering.PolylineRenderer;
+import net.itsred_v2.plaier.rendering.world.PolylineRenderer;
 import net.itsred_v2.plaier.task.Task;
 import net.itsred_v2.plaier.task.TaskState;
 import net.itsred_v2.plaier.tasks.pathProcessing.PathProcessorResult;

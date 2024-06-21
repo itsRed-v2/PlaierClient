@@ -2,7 +2,7 @@ package net.itsred_v2.plaier.task;
 
 import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.events.UpdateListener;
-import net.itsred_v2.plaier.rendering.TaskOutputHud;
+import net.itsred_v2.plaier.rendering.hud.TaskOutputHud;
 import net.itsred_v2.plaier.utils.Messenger;
 import org.jetbrains.annotations.Nullable;
 

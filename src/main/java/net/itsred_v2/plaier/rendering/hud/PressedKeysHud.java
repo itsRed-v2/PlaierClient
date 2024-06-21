@@ -1,24 +1,21 @@
-package net.itsred_v2.plaier.rendering;
+package net.itsred_v2.plaier.rendering.hud;
 
 import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.events.GuiRenderListener;
+import net.itsred_v2.plaier.utils.Toggleable;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.option.GameOptions;
 
-public class PressedKeysHud implements GuiRenderListener {
+public class PressedKeysHud extends Toggleable implements GuiRenderListener {
 
-    private boolean enabled = false;
-
-    public void enable() {
-        if (enabled) return;
-        enabled = true;
+    @Override
+    protected void onEnable() {
         PlaierClient.getEventManager().add(GuiRenderListener.class, this);
     }
 
-    public void disable() {
-        if (!enabled) return;
-        enabled = false;
+    @Override
+    protected void onDisable() {
         PlaierClient.getEventManager().remove(GuiRenderListener.class, this);
     }
 
