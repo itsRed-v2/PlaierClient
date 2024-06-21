@@ -9,7 +9,7 @@ import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.ai.pathfinding.Node;
 import net.itsred_v2.plaier.ai.pathfinding.PathFinder;
 import net.itsred_v2.plaier.events.UpdateListener;
-import net.itsred_v2.plaier.rendering.CubeHighlighter;
+import net.itsred_v2.plaier.rendering.BoxRenderer;
 import net.itsred_v2.plaier.task.Task;
 import net.itsred_v2.plaier.task.TaskState;
 import net.itsred_v2.plaier.utils.control.MovementUtils;
@@ -22,7 +22,7 @@ import net.minecraft.util.math.Vec3d;
 public class WalkPathProcessor extends Task implements UpdateListener {
 
     private static final int MAX_TICKS_OFF_PATH = 20; // 1 second
-    public static final CubeHighlighter debugRenderer = new CubeHighlighter(1.0f, 0.0f, 0.0f, 0.8f);
+    public static final BoxRenderer debugRenderer = new BoxRenderer(1.0f, 0.0f, 0.0f, 0.8f);
 
     private TaskState state = TaskState.READY;
     private final PathFinder.PathValidator pathValidator;
@@ -61,7 +61,7 @@ public class WalkPathProcessor extends Task implements UpdateListener {
         MovementUtils.lockControls(); // resetting controls
 
         this.onArrive.accept(result);
-        debugRenderer.highlightedPos = null;
+        debugRenderer.box = null;
     }
 
     @Override
@@ -88,21 +88,22 @@ public class WalkPathProcessor extends Task implements UpdateListener {
 
         // Applying the needed controls to get the player to the target node.
         control(player);
+
+        // Update the debug renderer
+        WalkPathProcessor.debugRenderer.box = getNodeBounds(path.get(targetNodeIndex).getPos());
     }
 
     private void advance(ClientPlayerEntity player) {
         // If the player is in one of the next positions, advance to this position.
         for (int index = targetNodeIndex; index < targetNodeIndex + 2 && index < path.size(); index++) {
             BlockPos nextPos = path.get(index).getPos();
-            if (isPlayerAt(player, nextPos)) {
+            if (getNodeBounds(nextPos).contains(player.getPos())) {
                 targetNodeIndex = index + 1;
                 if (targetNodeIndex >= path.size()) {
                     terminate(PathProcessorResult.ARRIVED);
                 } else {
                     // Trigger the onAdvance callback
                     this.onAdvance.accept(index, nextPos);
-                    // update the debug renderer
-                    this.debugRenderer.highlightedPos = path.get(targetNodeIndex).getPos();
                 }
                 return;
             }
@@ -122,8 +123,9 @@ public class WalkPathProcessor extends Task implements UpdateListener {
         }
 
         boolean shouldJump = shouldJumpBefore(player, targetNodeIndex);
+        boolean shouldJumpNext = shouldJumpBefore(player, targetNodeIndex + 1);
         MovementUtils.setJumping(shouldJump);
-        MovementUtils.setSprinting(!shouldJump);
+        MovementUtils.setSprinting(!shouldJump && !shouldJumpNext);
     }
 
     private boolean shouldJumpBefore(ClientPlayerEntity player, int nodeIndex) {
@@ -132,8 +134,13 @@ public class WalkPathProcessor extends Task implements UpdateListener {
         return player.getBlockPos().getY() == pos.getY() - 1;
     }
 
-    private boolean isPlayerAt(ClientPlayerEntity player, BlockPos pos) {
-        return player.getBlockPos().equals(pos);
+    /**
+     * Takes a {@link BlockPos} and returns the {@link Box} in which the player needs to be, to be considered to have reached this position.
+     * @param pos The {@link BlockPos} we want to get the bounds of.
+     * @return The {@link Box} in which the player needs to be, to be considered to have reached this position.
+     */
+    private Box getNodeBounds(BlockPos pos) {
+        return new Box(pos).withMaxY(pos.getY() + 1.1);
     }
 
     private boolean isPlayerAboveBlock(ClientPlayerEntity player, BlockPos pos) {

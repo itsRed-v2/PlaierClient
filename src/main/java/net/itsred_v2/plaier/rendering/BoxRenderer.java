@@ -9,19 +9,19 @@ import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.WorldRenderer;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 
-public class CubeHighlighter implements BeforeDebugRenderListener {
+public class BoxRenderer implements BeforeDebugRenderListener {
 
     public final float red;
     public final float green;
     public final float blue;
     public final float alpha;
-    public BlockPos highlightedPos = null;
+    public Box box = null;
     private boolean enabled = false;
 
-    public CubeHighlighter(float red, float green, float blue, float alpha) {
+    public BoxRenderer(float red, float green, float blue, float alpha) {
         this.red = red;
         this.green = green;
         this.blue = blue;
@@ -42,7 +42,7 @@ public class CubeHighlighter implements BeforeDebugRenderListener {
 
     @Override
     public void beforeDebugRender(BeforeDebugRenderEvent event) {
-        if (highlightedPos == null)
+        if (box == null)
             return;
 
         WorldRenderContext context = event.getContext();
@@ -50,14 +50,8 @@ public class CubeHighlighter implements BeforeDebugRenderListener {
         VertexConsumer lineConsumer = consumers.getBuffer(RenderLayer.getLines());
 
         Vec3d cam = context.camera().getPos();
-        float x1 = (float) (highlightedPos.getX() - cam.x);
-        float y1 = (float) (highlightedPos.getY() - cam.y);
-        float z1 = (float) (highlightedPos.getZ() - cam.z);
-        float x2 = (float) (highlightedPos.getX() + 1 - cam.x);
-        float y2 = (float) (highlightedPos.getY() + 1 - cam.y);
-        float z2 = (float) (highlightedPos.getZ() + 1 - cam.z);
-
-        WorldRenderer.drawBox(context.matrixStack(), lineConsumer, x1, y1, z1, x2, y2, z2, red, green, blue, alpha);
+        Box drawnBox = box.offset(-cam.x, -cam.y, -cam.z);
+        WorldRenderer.drawBox(context.matrixStack(), lineConsumer, drawnBox, red, green, blue, alpha);
 
     }
 
