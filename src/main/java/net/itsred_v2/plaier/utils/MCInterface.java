@@ -45,7 +45,7 @@ public class MCInterface {
         return client.getWindow().getHandle();
     }
 
-    public float getLastFrameDuration() {
+    public float getLastFrameDurationInTicks() {
         return client.getLastFrameDuration();
     }
 

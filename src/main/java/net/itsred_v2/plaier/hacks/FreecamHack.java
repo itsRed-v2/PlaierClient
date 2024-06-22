@@ -78,7 +78,7 @@ public class FreecamHack extends Toggleable implements SetCamPosListener, SetCam
         // This is called every frame.
         // We move the camera proportionally to the last frame
         // duration so speed is constant, regardless of frame rate.
-        this.camPos = camPos.add(this.movement.multiply(PlaierClient.MC.getLastFrameDuration()));
+        this.camPos = camPos.add(this.movement.multiply(PlaierClient.MC.getLastFrameDurationInTicks()));
         // Then replace the game's camera position with our custom position.
         event.setPosition(this.camPos);
     }

@@ -47,8 +47,6 @@ public class KeyboardController extends Toggleable implements KeyListener {
         }
     }
 
-    // TODO: something to prevent autojump
-
     public void unpressAllKeys() {
         for (KeyBinding keyBinding : controlledKeybindings) {
             ((KeyBindingInterface) keyBinding).plaierClient_setPressedBypass(false);

@@ -4,7 +4,7 @@ import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.events.ChangeLookDirectionListener;
 import net.itsred_v2.plaier.utils.Toggleable;
 
-public class RotationController extends Toggleable implements ChangeLookDirectionListener {
+public class RotationBlocker extends Toggleable implements ChangeLookDirectionListener {
 
     @Override
     protected void onEnable() {
