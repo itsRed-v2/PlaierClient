@@ -13,6 +13,7 @@ import net.itsred_v2.plaier.task.Task;
 import net.itsred_v2.plaier.task.TaskState;
 import net.itsred_v2.plaier.tasks.pathProcessing.PathProcessorResult;
 import net.itsred_v2.plaier.tasks.pathProcessing.WalkPathProcessor;
+import net.itsred_v2.plaier.utils.control.PlayerController;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ColorHelper;
 
@@ -24,6 +25,7 @@ public class WalkPathFindTask extends Task {
     private AsyncPathFinderWrapper pathFinderWrapper;
     private List<Node> path;
     private WalkPathProcessor pathProcessor;
+    private PlayerController playerController;
     private TaskState state = TaskState.READY;
     private BlockPos lastPathfindingStart;
 
@@ -41,6 +43,9 @@ public class WalkPathFindTask extends Task {
         redPathRenderer = new PolylineRenderer(ColorHelper.Argb.getArgb(255, 255, 0, 0));
         redPathRenderer.enable();
 
+        playerController = new PlayerController();
+        playerController.enable();
+
         startPathFinding();
     }
 
@@ -51,6 +56,8 @@ public class WalkPathFindTask extends Task {
 
         bluePathRenderer.disable();
         redPathRenderer.disable();
+
+        playerController.disable();
 
         if (pathFinderWrapper != null)
             pathFinderWrapper.cancel();
@@ -146,7 +153,7 @@ public class WalkPathFindTask extends Task {
     private void startPathProcessor(PathFinder.PathValidator pathValidator, List<Node> path) {
         if (pathProcessor != null)
             pathProcessor.terminate();
-        pathProcessor = new WalkPathProcessor(pathValidator, path, this::onPathProcessorDone, this::onPathProcessorAdvance);
+        pathProcessor = new WalkPathProcessor(pathValidator, path, this::onPathProcessorDone, this::onPathProcessorAdvance, this.playerController);
         pathProcessor.start();
     }
 

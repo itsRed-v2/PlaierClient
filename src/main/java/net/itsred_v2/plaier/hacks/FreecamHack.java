@@ -7,9 +7,9 @@ import net.itsred_v2.plaier.events.ChangeLookDirectionListener;
 import net.itsred_v2.plaier.events.LeaveGameSessionListener;
 import net.itsred_v2.plaier.events.SetCamPosListener;
 import net.itsred_v2.plaier.events.SetCamRotationListener;
-import net.itsred_v2.plaier.events.PreUpdateListener;
+import net.itsred_v2.plaier.events.UpdateListener;
 import net.itsred_v2.plaier.utils.Toggleable;
-import net.itsred_v2.plaier.utils.control.MovementUtils;
+import net.itsred_v2.plaier.utils.control.PlayerController;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.KeyBinding;
@@ -18,18 +18,22 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
 public class FreecamHack extends Toggleable implements SetCamPosListener, SetCamRotationListener,
-        AfterCameraUpdateListener, LeaveGameSessionListener, PreUpdateListener,
+        AfterCameraUpdateListener, LeaveGameSessionListener, UpdateListener,
         ChangeLookDirectionListener {
 
     private Vec3d camPos;
     private float yaw;
     private float pitch;
     private Vec3d movement = Vec3d.ZERO;
+    private PlayerController playerController;
     private boolean controlPlayer = false;
 
     @Override
     protected void onEnable() {
         this.controlPlayer = false;
+        this.playerController = new PlayerController();
+        this.playerController.enable();
+
         ClientPlayerEntity player = PlaierClient.getPlayer();
         this.camPos = player.getEyePos();
         this.yaw = player.getYaw();
@@ -39,22 +43,30 @@ public class FreecamHack extends Toggleable implements SetCamPosListener, SetCam
         PlaierClient.getEventManager().add(SetCamRotationListener.class, this);
         PlaierClient.getEventManager().add(AfterCameraUpdateListener.class, this);
         PlaierClient.getEventManager().add(LeaveGameSessionListener.class, this);
-        PlaierClient.getEventManager().add(PreUpdateListener.class, this);
+        PlaierClient.getEventManager().add(UpdateListener.class, this);
         PlaierClient.getEventManager().add(ChangeLookDirectionListener.class, this);
     }
 
     @Override
     protected void onDisable() {
+        this.playerController.disable();
         PlaierClient.getEventManager().remove(SetCamPosListener.class, this);
         PlaierClient.getEventManager().remove(SetCamRotationListener.class, this);
         PlaierClient.getEventManager().remove(AfterCameraUpdateListener.class, this);
         PlaierClient.getEventManager().remove(LeaveGameSessionListener.class, this);
-        PlaierClient.getEventManager().remove(PreUpdateListener.class, this);
+        PlaierClient.getEventManager().remove(UpdateListener.class, this);
         PlaierClient.getEventManager().remove(ChangeLookDirectionListener.class, this);
     }
 
     public void setControllingPlayer(boolean controlPlayer) {
         this.controlPlayer = controlPlayer;
+        // when the playerController is enabled, all controls are blocked.
+        // Hence, if we want the user to be able to control the player, we need to disable it.
+        if (controlPlayer) {
+            playerController.disable();
+        } else {
+            playerController.enable();
+        }
     }
 
     public boolean isControllingPlayer() {
@@ -94,7 +106,7 @@ public class FreecamHack extends Toggleable implements SetCamPosListener, SetCam
     }
 
     @Override
-    public void onPreUpdate() {
+    public void onUpdate() {
         // If we are controlling the player and not the camera,
         // OR if any screen is open (such as chat or inventory)
         // then, don't process camera movements.
@@ -102,12 +114,6 @@ public class FreecamHack extends Toggleable implements SetCamPosListener, SetCam
             this.movement = Vec3d.ZERO;
             return;
         }
-
-        // Prevent the player from moving by disabling all controls.
-        // The reason this class listens to UpdatePreEvent instead of UpdateEvent is that it
-        // needs to run before the other update listeners, to avoid that this lockControls() call
-        // overrides the control values set by other listeners, such as the PathProcessorTask.
-        MovementUtils.lockControls();
 
         double movementForward = 0;
         double movementRight = 0;
@@ -140,8 +146,6 @@ public class FreecamHack extends Toggleable implements SetCamPosListener, SetCam
         // If we are controlling the player and not the camera, don't process camera rotation control.
         if (controlPlayer) return;
 
-        // Prevent the player from receiving the rotation instruction.
-        event.cancel();
         // Apply the change in direction to the camera's yaw and pitch.
         this.pitch += (float) event.cursorDeltaY * 0.15f;
         this.yaw += (float) event.cursorDeltaX * 0.15f;

@@ -12,7 +12,8 @@
     "ChatScreenMixin",
     "InGameHudMixin",
     "CameraMixin",
-    "MouseMixin"
+    "MouseMixin",
+    "KeyBindingMixin"
   ],
   "injectors": {
     "defaultRequire": 1

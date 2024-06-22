@@ -12,7 +12,7 @@ import net.itsred_v2.plaier.events.UpdateListener;
 import net.itsred_v2.plaier.rendering.world.BoxRenderer;
 import net.itsred_v2.plaier.task.Task;
 import net.itsred_v2.plaier.task.TaskState;
-import net.itsred_v2.plaier.utils.control.MovementUtils;
+import net.itsred_v2.plaier.utils.control.PlayerController;
 import net.itsred_v2.plaier.utils.control.RotationUtils;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.util.math.BlockPos;
@@ -29,15 +29,18 @@ public class WalkPathProcessor extends Task implements UpdateListener {
     private List<Node> path;
     private final Consumer<PathProcessorResult> onArrive;
     private final BiConsumer<Integer, BlockPos> onAdvance;
+    private final PlayerController controller;
     private int targetNodeIndex = 0;
     private int ticksOffPath = 0;
 
     public WalkPathProcessor(PathFinder.PathValidator pathValidator, List<Node> path,
-                             Consumer<PathProcessorResult> onArrive, BiConsumer<Integer, BlockPos> onAdvance) {
+                             Consumer<PathProcessorResult> onArrive, BiConsumer<Integer, BlockPos> onAdvance,
+                             PlayerController controller) {
         this.pathValidator = pathValidator;
         this.path = new ArrayList<>(path);
         this.onArrive = onArrive;
         this.onAdvance = onAdvance;
+        this.controller = controller;
     }
 
     @Override
@@ -58,7 +61,7 @@ public class WalkPathProcessor extends Task implements UpdateListener {
         state = TaskState.DONE;
 
         PlaierClient.getEventManager().remove(UpdateListener.class, this);
-        MovementUtils.lockControls(); // resetting controls
+        controller.keyboard.unpressAllKeys(); // making sure no keys stay pressed
 
         this.onArrive.accept(result);
         debugRenderer.box = null;
@@ -113,19 +116,19 @@ public class WalkPathProcessor extends Task implements UpdateListener {
     private void control(ClientPlayerEntity player) {
         BlockPos nextPos = path.get(targetNodeIndex).getPos();
 
-        MovementUtils.lockControls();
-        MovementUtils.disableFlying();
+        controller.keyboard.unpressAllKeys();
+        controller.disableFlying();
 
         // Walk towards the block
         if (!isPlayerAboveBlock(player, nextPos)) {
             RotationUtils.facePosHorizontally(Vec3d.ofCenter(nextPos));
-            MovementUtils.forward(true);
+            controller.keyboard.forwardKey(true);
         }
 
         boolean shouldJump = shouldJumpBefore(player, targetNodeIndex);
         boolean shouldJumpNext = shouldJumpBefore(player, targetNodeIndex + 1);
-        MovementUtils.setJumping(shouldJump);
-        MovementUtils.setSprinting(!shouldJump && !shouldJumpNext);
+        controller.keyboard.jumpKey(shouldJump);
+        controller.setSprinting(!shouldJump && !shouldJumpNext);
     }
 
     private boolean shouldJumpBefore(ClientPlayerEntity player, int nodeIndex) {
