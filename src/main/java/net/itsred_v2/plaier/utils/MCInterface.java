@@ -7,6 +7,7 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.option.GameOptions;
+import net.minecraft.world.GameMode;
 import net.minecraft.world.WorldView;
 
 public class MCInterface {
@@ -47,6 +48,10 @@ public class MCInterface {
 
     public float getLastFrameDurationInTicks() {
         return client.getLastFrameDuration();
+    }
+
+    public GameMode getGameMode() {
+        return Objects.requireNonNull(client.interactionManager).getCurrentGameMode();
     }
 
 }

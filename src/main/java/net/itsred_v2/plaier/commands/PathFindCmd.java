@@ -35,9 +35,7 @@ public class PathFindCmd implements Command {
         Task task = new WalkPathFindTask(goal);
         boolean success = session.getTaskManager().startTask(task);
 
-        if (success) {
-            Messenger.chat("Started pathfinding task.");
-        } else {
+        if (!success) {
             Messenger.chat("§cAnother task is already running.");
         }
     }

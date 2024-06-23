@@ -8,6 +8,7 @@ import net.itsred_v2.plaier.ai.pathfinding.Node;
 import net.itsred_v2.plaier.ai.pathfinding.PathFinder;
 import net.itsred_v2.plaier.ai.pathfinding.PathFinderOutput;
 import net.itsred_v2.plaier.ai.pathfinding.pathfinders.ExplorerWalkPathFinder;
+import net.itsred_v2.plaier.events.GameModeChangeListener;
 import net.itsred_v2.plaier.events.PlayerDeathListener;
 import net.itsred_v2.plaier.rendering.world.PolylineRenderer;
 import net.itsred_v2.plaier.task.Task;
@@ -17,8 +18,9 @@ import net.itsred_v2.plaier.tasks.pathProcessing.WalkPathProcessor;
 import net.itsred_v2.plaier.utils.control.PlayerController;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ColorHelper;
+import net.minecraft.world.GameMode;
 
-public class WalkPathFindTask extends Task implements PlayerDeathListener {
+public class WalkPathFindTask extends Task implements PlayerDeathListener, GameModeChangeListener {
 
     private final BlockPos goal;
     private PolylineRenderer bluePathRenderer;
@@ -39,6 +41,12 @@ public class WalkPathFindTask extends Task implements PlayerDeathListener {
         if (state != TaskState.READY) throw new RuntimeException("Task started twice.");
         state = TaskState.RUNNING;
 
+        if (PlaierClient.MC.getGameMode() == GameMode.SPECTATOR) {
+            this.output.fail("You cannot do this in spectator mode.");
+            terminate();
+            return;
+        }
+
         bluePathRenderer = new PolylineRenderer(ColorHelper.Argb.getArgb(255, 0, 255, 255));
         bluePathRenderer.enable();
         redPathRenderer = new PolylineRenderer(ColorHelper.Argb.getArgb(255, 255, 0, 0));
@@ -48,6 +56,7 @@ public class WalkPathFindTask extends Task implements PlayerDeathListener {
         playerController.enable();
 
         PlaierClient.getEventManager().add(PlayerDeathListener.class, this);
+        PlaierClient.getEventManager().add(GameModeChangeListener.class, this);
 
         startPathFinding();
     }
@@ -57,18 +66,15 @@ public class WalkPathFindTask extends Task implements PlayerDeathListener {
         if (state != TaskState.RUNNING) return;
         state = TaskState.DONE;
 
-        bluePathRenderer.disable();
-        redPathRenderer.disable();
+        if (bluePathRenderer != null) bluePathRenderer.disable();
+        if (redPathRenderer != null) redPathRenderer.disable();
+        if (playerController != null) playerController.disable();
 
-        playerController.disable();
-
-        if (pathFinderWrapper != null)
-            pathFinderWrapper.cancel();
-
-        if (pathProcessor != null)
-            pathProcessor.terminate();
+        if (pathFinderWrapper != null) pathFinderWrapper.cancel();
+        if (pathProcessor != null) pathProcessor.terminate();
 
         PlaierClient.getEventManager().remove(PlayerDeathListener.class, this);
+        PlaierClient.getEventManager().remove(GameModeChangeListener.class, this);
     }
 
     @Override
@@ -144,10 +150,12 @@ public class WalkPathFindTask extends Task implements PlayerDeathListener {
     }
 
     private void renderPathUpdating(int updateIndex) {
+        // The blue path represents the path that is not subject to change
         bluePathRenderer.vertices = path.subList(0, updateIndex + 1)
                 .stream()
                 .map(node -> node.getPos().toCenterPos())
                 .toList();
+        // The red path represents the path that is getting updated and will be discarded soon.
         redPathRenderer.vertices = path.subList(updateIndex, path.size())
                 .stream()
                 .map(node -> node.getPos().toCenterPos())
@@ -198,5 +206,13 @@ public class WalkPathFindTask extends Task implements PlayerDeathListener {
         this.output.fail("Player died: aborting task. Sorry for any inconvenience caused by PlaierClient. Please " +
                 "note that we are not responsible for any losses caused by the use of our mod.");
         terminate();
+    }
+
+    @Override
+    public void onGameModeChange(GameModeChangeEvent event) {
+        if (event.gameMode == GameMode.SPECTATOR) {
+            this.output.fail("Detected spectator mode: aborting task. This task does not support spectator mode.");
+            terminate();
+        }
     }
 }
