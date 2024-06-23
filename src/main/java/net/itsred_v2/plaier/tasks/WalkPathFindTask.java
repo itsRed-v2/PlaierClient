@@ -8,6 +8,7 @@ import net.itsred_v2.plaier.ai.pathfinding.Node;
 import net.itsred_v2.plaier.ai.pathfinding.PathFinder;
 import net.itsred_v2.plaier.ai.pathfinding.PathFinderOutput;
 import net.itsred_v2.plaier.ai.pathfinding.pathfinders.ExplorerWalkPathFinder;
+import net.itsred_v2.plaier.events.PlayerDeathListener;
 import net.itsred_v2.plaier.rendering.world.PolylineRenderer;
 import net.itsred_v2.plaier.task.Task;
 import net.itsred_v2.plaier.task.TaskState;
@@ -17,7 +18,7 @@ import net.itsred_v2.plaier.utils.control.PlayerController;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ColorHelper;
 
-public class WalkPathFindTask extends Task {
+public class WalkPathFindTask extends Task implements PlayerDeathListener {
 
     private final BlockPos goal;
     private PolylineRenderer bluePathRenderer;
@@ -46,6 +47,8 @@ public class WalkPathFindTask extends Task {
         playerController = new PlayerController();
         playerController.enable();
 
+        PlaierClient.getEventManager().add(PlayerDeathListener.class, this);
+
         startPathFinding();
     }
 
@@ -64,6 +67,8 @@ public class WalkPathFindTask extends Task {
 
         if (pathProcessor != null)
             pathProcessor.terminate();
+
+        PlaierClient.getEventManager().remove(PlayerDeathListener.class, this);
     }
 
     @Override
@@ -188,4 +193,10 @@ public class WalkPathFindTask extends Task {
         }
     }
 
+    @Override
+    public void onPlayerDeath() {
+        this.output.fail("Player died: aborting task. Sorry for any inconvenience caused by PlaierClient. Please " +
+                "note that we are not responsible for any losses caused by the use of our mod.");
+        terminate();
+    }
 }
