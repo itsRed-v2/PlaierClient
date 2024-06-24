@@ -3,13 +3,19 @@ package net.itsred_v2.plaier.mixin;
 import net.itsred_v2.plaier.event.EventManager;
 import net.itsred_v2.plaier.events.ChatOutputListener;
 import net.minecraft.client.gui.screen.ChatScreen;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ChatScreen.class)
-public class ChatScreenMixin {
+public abstract class ChatScreenMixin extends Screen {
+
+    private ChatScreenMixin(Text title) {
+        super(title);
+    }
 
     @Inject(method = "sendMessage",
             at = @At(value = "INVOKE",
