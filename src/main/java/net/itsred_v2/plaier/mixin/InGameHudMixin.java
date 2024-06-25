@@ -26,7 +26,6 @@ public abstract class InGameHudMixin {
         if (debugHud.shouldShowDebugHud())
             return;
 
-        // TODO: Shows in F1 mode ?
         EventManager.fire(new GuiRenderListener.GuiRenderEvent(context));
     }
 

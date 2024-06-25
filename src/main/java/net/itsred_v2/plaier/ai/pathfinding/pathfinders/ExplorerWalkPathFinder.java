@@ -16,11 +16,14 @@ public class ExplorerWalkPathFinder extends WalkPathFinder {
         if (this.goal.equals(currentPos))
             return true;
 
-        // If the pathfinder encounters the border of the loaded world, we consider it done
-        Set<BlockPos> neighbors = Set.of(currentPos.east(), currentPos.west(), currentPos.south(), currentPos.north());
-        for (BlockPos pos : neighbors) {
-            if (this.blockHelper.isUnloaded(pos))
-                return true;
+        // We want the pathfinder to explore unloaded parts of the world only if the goal is currently unloaded.
+        if (this.blockHelper.isUnloaded(goal)) {
+            // If the pathfinder encounters the border of the loaded world, we consider it done
+            Set<BlockPos> neighbors = Set.of(currentPos.east(), currentPos.west(), currentPos.south(), currentPos.north());
+            for (BlockPos pos : neighbors) {
+                if (this.blockHelper.isUnloaded(pos))
+                    return true;
+            }
         }
 
         return false;
