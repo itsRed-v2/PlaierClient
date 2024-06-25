@@ -58,6 +58,7 @@ public class WalkPathFindTask extends Task implements PlayerDeathListener, GameM
         PlaierClient.getEventManager().add(PlayerDeathListener.class, this);
         PlaierClient.getEventManager().add(GameModeChangeListener.class, this);
 
+        this.output.chatInfo("Started pathfinding task.");
         startPathFinding();
     }
 

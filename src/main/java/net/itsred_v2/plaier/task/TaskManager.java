@@ -42,6 +42,12 @@ public class TaskManager implements UpdateListener {
             }
 
             @Override
+            public void chatInfo(String message) {
+                taskOutputHud.addMessage(INFO_PREFIX + message);
+                Messenger.chat(INFO_PREFIX + message);
+            }
+
+            @Override
             public void fail(String message) {
                 taskOutputHud.addMessage(FAIL_PREFIX + message);
                 Messenger.chat(FAIL_PREFIX + message);
