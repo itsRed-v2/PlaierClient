@@ -6,10 +6,7 @@ import net.itsred_v2.plaier.command.CommandProcessor;
 import net.itsred_v2.plaier.event.EventManager;
 import net.itsred_v2.plaier.events.BeforeDebugRenderListener.BeforeDebugRenderEvent;
 import net.itsred_v2.plaier.events.ChatOutputListener;
-import net.itsred_v2.plaier.events.LeaveGameSessionListener;
-import net.itsred_v2.plaier.events.StartGameSessionListener;
-import net.itsred_v2.plaier.session.Session;
-import net.itsred_v2.plaier.session.SessionLifeManager;
+import net.itsred_v2.plaier.task.TaskManager;
 import net.itsred_v2.plaier.utils.MCInterface;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -24,7 +21,7 @@ public class PlaierClient implements ClientModInitializer {
     public static final DebugOptions DEBUG_OPTIONS = new DebugOptions();
 
     private static final EventManager EVENT_MANAGER = new EventManager();
-    private static final SessionLifeManager SESSION_MANAGER = new SessionLifeManager();
+    private static final TaskManager TASK_MANAGER = new TaskManager();
 
     /**
      * Runs the mod initializer on the client environment.
@@ -35,16 +32,14 @@ public class PlaierClient implements ClientModInitializer {
 
         WorldRenderEvents.BEFORE_DEBUG_RENDER.register(context -> EventManager.fire(new BeforeDebugRenderEvent(context)));
         EVENT_MANAGER.add(ChatOutputListener.class, new CommandProcessor());
-        EVENT_MANAGER.add(StartGameSessionListener.class, SESSION_MANAGER);
-        EVENT_MANAGER.add(LeaveGameSessionListener.class, SESSION_MANAGER);
     }
 
     public static EventManager getEventManager() {
         return EVENT_MANAGER;
     }
 
-    public static Session getCurrentSession() {
-        return SESSION_MANAGER.getCurrentSession();
+    public static TaskManager getTaskManager() {
+        return TASK_MANAGER;
     }
 
     public static ClientPlayerEntity getPlayer() {

@@ -4,7 +4,6 @@ import java.util.List;
 
 import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.command.Command;
-import net.itsred_v2.plaier.session.Session;
 import net.itsred_v2.plaier.task.Task;
 import net.itsred_v2.plaier.tasks.WalkPathFindTask;
 import net.itsred_v2.plaier.utils.Messenger;
@@ -14,8 +13,6 @@ public class PathFindCmd implements Command {
 
     @Override
     public void onCommand(List<String> args) {
-        Session session = PlaierClient.getCurrentSession();
-
         if (args.size() != 3) {
             Messenger.chat("§cInvalid syntax.");
             return;
@@ -33,7 +30,7 @@ public class PathFindCmd implements Command {
 
         BlockPos goal = new BlockPos(posX, posY, posZ);
         Task task = new WalkPathFindTask(goal);
-        boolean success = session.getTaskManager().startTask(task);
+        boolean success = PlaierClient.getTaskManager().startTask(task);
 
         if (!success) {
             Messenger.chat("§cAnother task is already running.");

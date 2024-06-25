@@ -1,12 +1,13 @@
 package net.itsred_v2.plaier.task;
 
 import net.itsred_v2.plaier.PlaierClient;
+import net.itsred_v2.plaier.events.LeaveGameSessionListener;
 import net.itsred_v2.plaier.events.UpdateListener;
 import net.itsred_v2.plaier.rendering.hud.TaskOutputHud;
 import net.itsred_v2.plaier.utils.Messenger;
 import org.jetbrains.annotations.Nullable;
 
-public class TaskManager implements UpdateListener {
+public class TaskManager implements UpdateListener, LeaveGameSessionListener {
 
     private static final String INFO_PREFIX = "§7[Info] §r";
     private static final String FAIL_PREFIX = "§4[Fail] §c";
@@ -32,6 +33,7 @@ public class TaskManager implements UpdateListener {
 
     public TaskManager() {
         PlaierClient.getEventManager().add(UpdateListener.class, this);
+        PlaierClient.getEventManager().add(LeaveGameSessionListener.class, this);
 
         this.taskOutputHud = new TaskOutputHud();
 
@@ -83,7 +85,8 @@ public class TaskManager implements UpdateListener {
 
     /**
      * Stops the task currently running, if there is one.
-     * @return true if a task was stopped, false if there was no task
+     * Also used to clean up after a task is done.
+     * @return true if a task was stopped or cleaned, false if there was no task
      */
     public boolean stopTask() {
         if (task == null)
@@ -120,10 +123,12 @@ public class TaskManager implements UpdateListener {
     /**
      * At the end of the session, we must clean up and shut down everything.
      */
-    public void onSessionEnd() {
-        PlaierClient.getEventManager().remove(UpdateListener.class, this);
+    @Override
+    public void onLeaveGameSession() {
         stopTask();
         taskOutputHud.disable();
+        taskOutputHud.clear();
+        outputHudTicksRemaining = -1;
     }
 
 }

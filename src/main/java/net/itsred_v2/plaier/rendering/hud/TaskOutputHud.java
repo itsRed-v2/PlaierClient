@@ -98,6 +98,10 @@ public class TaskOutputHud extends Toggleable implements GuiRenderListener {
         }
     }
 
+    public void clear() {
+        this.lines.clear();
+    }
+
     private record LogLine(OrderedText content, int addedAt) {}
 
 }
