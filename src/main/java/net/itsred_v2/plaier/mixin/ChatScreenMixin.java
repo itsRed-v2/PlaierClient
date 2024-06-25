@@ -8,7 +8,7 @@ import net.minecraft.text.Text;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ChatScreen.class)
 public abstract class ChatScreenMixin extends Screen {
@@ -22,12 +22,12 @@ public abstract class ChatScreenMixin extends Screen {
                     target = "Lnet/minecraft/client/network/ClientPlayNetworkHandler;sendChatMessage(Ljava/lang/String;)V",
                     ordinal = 0),
             cancellable = true)
-    public void onSendMessage(String chatText, boolean addToHistory, CallbackInfoReturnable<Boolean> cir) {
+    public void onSendMessage(String chatText, boolean addToHistory, CallbackInfo ci) {
         ChatOutputListener.ChatOutputEvent event = new ChatOutputListener.ChatOutputEvent(chatText);
         EventManager.fire(event);
 
         if (event.isCancelled()) {
-            cir.setReturnValue(true);
+            ci.cancel();
         }
     }
 

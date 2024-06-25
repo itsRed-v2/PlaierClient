@@ -47,7 +47,7 @@ public class MCInterface {
     }
 
     public float getLastFrameDurationInTicks() {
-        return client.getLastFrameDuration();
+        return client.getRenderTickCounter().getLastFrameDuration();
     }
 
     public GameMode getGameMode() {

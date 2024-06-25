@@ -18,9 +18,9 @@ public abstract class MinecraftClientMixin extends ReentrantThreadExecutor<Runna
         super(string);
     }
 
-    @Inject(method = "disconnect(Lnet/minecraft/client/gui/screen/Screen;)V",
+    @Inject(method = "disconnect(Lnet/minecraft/client/gui/screen/Screen;Z)V",
             at = @At("HEAD"))
-    public void disconnect(Screen disconnectionScreen, CallbackInfo ci) {
+    public void disconnect(Screen disconnectionScreen, boolean transferring, CallbackInfo ci) {
         EventManager.fire(new LeaveGameSessionListener.LeaveGameSessionEvent());
     }
 

@@ -34,6 +34,7 @@ public abstract class ClientPlayNetworkHandlerMixin extends ClientCommonNetworkH
     @Inject(method = "onDeathMessage",
             at = @At("HEAD"))
     public void onDeathMessage(DeathMessageS2CPacket packet, CallbackInfo ci) {
+        // TODO: Check if other player's death triggers this
         EventManager.fire(PlayerDeathListener.PlayerDeathEvent.INSTANCE);
     }
 

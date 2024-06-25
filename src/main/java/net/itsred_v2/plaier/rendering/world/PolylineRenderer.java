@@ -37,11 +37,11 @@ public class PolylineRenderer extends Toggleable implements BeforeDebugRenderLis
         WorldRenderContext context = event.getContext();
 
         VertexConsumer vertexConsumer = Objects.requireNonNull(context.consumers()).getBuffer(RenderLayer.getDebugLineStrip(1.0));
-        Matrix4f matrix = context.matrixStack().peek().getPositionMatrix();
+        Matrix4f matrix = Objects.requireNonNull(context.matrixStack()).peek().getPositionMatrix();
         Vec3d cam = context.camera().getPos();
 
         for (Vec3d vert : vertices) {
-            vertexConsumer.vertex(matrix, (float) (vert.x - cam.x), (float) (vert.y - cam.y), (float) (vert.z - cam.z)).color(color).next();
+            vertexConsumer.vertex(matrix, (float) (vert.x - cam.x), (float) (vert.y - cam.y), (float) (vert.z - cam.z)).color(color);
         }
     }
 

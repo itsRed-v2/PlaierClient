@@ -8,8 +8,8 @@ import net.itsred_v2.plaier.events.BeforeDebugRenderListener;
 import net.itsred_v2.plaier.utils.Toggleable;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.WorldRenderer;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 
@@ -44,12 +44,12 @@ public class BoxRenderer extends Toggleable implements BeforeDebugRenderListener
             return;
 
         WorldRenderContext context = event.getContext();
-        VertexConsumerProvider consumers = Objects.requireNonNull(context.consumers());
-        VertexConsumer lineConsumer = consumers.getBuffer(RenderLayer.getLines());
+        VertexConsumer lineConsumer = Objects.requireNonNull(context.consumers()).getBuffer(RenderLayer.getLines());
+        MatrixStack matrices = Objects.requireNonNull(context.matrixStack());
 
         Vec3d cam = context.camera().getPos();
         Box drawnBox = box.offset(-cam.x, -cam.y, -cam.z);
-        WorldRenderer.drawBox(context.matrixStack(), lineConsumer, drawnBox, red, green, blue, alpha);
+        WorldRenderer.drawBox(matrices, lineConsumer, drawnBox, red, green, blue, alpha);
 
     }
 
