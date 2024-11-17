@@ -1,5 +1,7 @@
 package net.itsred_v2.plaier.tasks;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import net.itsred_v2.plaier.PlaierClient;
@@ -10,6 +12,7 @@ import net.itsred_v2.plaier.ai.pathfinding.PathFinderOutput;
 import net.itsred_v2.plaier.ai.pathfinding.pathfinders.ExplorerWalkPathFinder;
 import net.itsred_v2.plaier.events.GameModeChangeListener;
 import net.itsred_v2.plaier.events.PlayerDeathListener;
+import net.itsred_v2.plaier.events.UpdateListener;
 import net.itsred_v2.plaier.rendering.world.PolylineRenderer;
 import net.itsred_v2.plaier.task.Task;
 import net.itsred_v2.plaier.task.TaskState;
@@ -20,7 +23,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ColorHelper;
 import net.minecraft.world.GameMode;
 
-public class WalkPathFindTask extends Task implements PlayerDeathListener, GameModeChangeListener {
+public class WalkPathFindTask extends Task implements PlayerDeathListener, GameModeChangeListener, UpdateListener {
 
     private final BlockPos goal;
     private PolylineRenderer bluePathRenderer;
@@ -31,6 +34,9 @@ public class WalkPathFindTask extends Task implements PlayerDeathListener, GameM
     private PlayerController playerController;
     private TaskState state = TaskState.READY;
     private BlockPos lastPathfindingStart;
+
+    private boolean autopilotEnabled = false;
+    private long pathfinderStartTime = -1;
 
     public WalkPathFindTask(BlockPos goal) {
         this.goal = goal;
@@ -54,9 +60,11 @@ public class WalkPathFindTask extends Task implements PlayerDeathListener, GameM
 
         playerController = new PlayerController();
         playerController.enable();
+        autopilotEnabled = true;
 
         PlaierClient.getEventManager().add(PlayerDeathListener.class, this);
         PlaierClient.getEventManager().add(GameModeChangeListener.class, this);
+        PlaierClient.getEventManager().add(UpdateListener.class, this);
 
         this.output.chatInfo("Started pathfinding task.");
         startPathFinding();
@@ -70,6 +78,7 @@ public class WalkPathFindTask extends Task implements PlayerDeathListener, GameM
         if (bluePathRenderer != null) bluePathRenderer.disable();
         if (redPathRenderer != null) redPathRenderer.disable();
         if (playerController != null) playerController.disable();
+        autopilotEnabled = false;
 
         if (pathFinderWrapper != null) pathFinderWrapper.cancel();
         if (pathProcessor != null) pathProcessor.terminate();
@@ -104,10 +113,13 @@ public class WalkPathFindTask extends Task implements PlayerDeathListener, GameM
         if (pathFinderWrapper != null)
             pathFinderWrapper.cancel();
 
+        pathfinderStartTime = new Date().getTime();
         pathFinderWrapper = new AsyncPathFinderWrapper(pathFinder, output -> onPathFinderDone(isUpdate, updateIndex, output));
     }
 
     private void onPathFinderDone(boolean isUpdate, int updateIndex, PathFinderOutput output) {
+        pathfinderStartTime = -1;
+
         switch (output.exitStatus()) {
             case FOUND -> {
                 if (isUpdate) {
@@ -215,5 +227,21 @@ public class WalkPathFindTask extends Task implements PlayerDeathListener, GameM
             this.output.fail("Detected spectator mode: aborting task. This task does not support spectator mode.");
             terminate();
         }
+    }
+
+    @Override
+    public void onUpdate() {
+        List<String> infoLines = new ArrayList<>();
+        infoLines.add("Autopilot: " + (autopilotEnabled ? "§aENABLED" : "§7Disabled"));
+
+        if (pathfinderStartTime == -1) {
+            infoLines.add("Pathfinder: §7Idle");
+        } else {
+            long now = new Date().getTime();
+            float elapsedSeconds = (now - pathfinderStartTime) / 1000f;
+            infoLines.add("Pathfinder: §3Running (%.1fs)".formatted(elapsedSeconds));
+        }
+
+        this.output.setInfoLines(infoLines);
     }
 }

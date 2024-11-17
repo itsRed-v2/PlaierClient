@@ -1,9 +1,11 @@
 package net.itsred_v2.plaier.task;
 
+import java.util.List;
+
 import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.events.LeaveGameSessionListener;
 import net.itsred_v2.plaier.events.UpdateListener;
-import net.itsred_v2.plaier.rendering.hud.TaskOutputHud;
+import net.itsred_v2.plaier.rendering.hud.TaskHud;
 import net.itsred_v2.plaier.utils.Messenger;
 import org.jetbrains.annotations.Nullable;
 
@@ -16,11 +18,11 @@ public class TaskManager implements UpdateListener, LeaveGameSessionListener {
     /**
      * The hud which displays the task output.
      */
-    private final TaskOutputHud taskOutputHud;
+    private final TaskHud taskHud;
     /**
-     * The "consumer" callback that the task can call to display text.
+     * The interface that the task can use to display information on the taskHud.
      */
-    private final TaskOutputConsumer taskOutputConsumer;
+    private final TaskHudInterface taskHudInterface;
     /**
      * The currently running task.
      */
@@ -29,36 +31,41 @@ public class TaskManager implements UpdateListener, LeaveGameSessionListener {
      * If not -1, this value decreases every tick and when it reaches zero, the output hud is disabled.
      * Used to schedule the disabling of the output hud.
      */
-    private int outputHudTicksRemaining = -1;
+    private int taskHudTicksRemaining = -1;
 
     public TaskManager() {
         PlaierClient.getEventManager().add(UpdateListener.class, this);
         PlaierClient.getEventManager().add(LeaveGameSessionListener.class, this);
 
-        this.taskOutputHud = new TaskOutputHud();
+        this.taskHud = new TaskHud();
 
-        this.taskOutputConsumer = new TaskOutputConsumer() {
+        this.taskHudInterface = new TaskHudInterface() {
             @Override
             public void info(String message) {
-                taskOutputHud.addMessage(INFO_PREFIX + message);
+                taskHud.addMessage(INFO_PREFIX + message);
             }
 
             @Override
             public void chatInfo(String message) {
-                taskOutputHud.addMessage(INFO_PREFIX + message);
+                taskHud.addMessage(INFO_PREFIX + message);
                 Messenger.chat(INFO_PREFIX + message);
             }
 
             @Override
             public void fail(String message) {
-                taskOutputHud.addMessage(FAIL_PREFIX + message);
+                taskHud.addMessage(FAIL_PREFIX + message);
                 Messenger.chat(FAIL_PREFIX + message);
             }
 
             @Override
             public void success(String message) {
-                taskOutputHud.addMessage(SUCCESS_PREFIX + message);
+                taskHud.addMessage(SUCCESS_PREFIX + message);
                 Messenger.chat(SUCCESS_PREFIX + message);
+            }
+
+            @Override
+            public void setInfoLines(List<String> lines) {
+                taskHud.setInfoLines(lines);
             }
         };
     }
@@ -74,10 +81,10 @@ public class TaskManager implements UpdateListener, LeaveGameSessionListener {
 
         task = newTask;
 
-        task.setOutput(taskOutputConsumer);
-        taskOutputHud.enable();
-        taskOutputHud.addMessage("§e[TASK STARTED]");
-        outputHudTicksRemaining = -1; // Cancel any scheduled disabling.
+        task.setOutput(taskHudInterface);
+        taskHud.enable();
+        taskHud.addMessage("§e[TASK STARTED]");
+        taskHudTicksRemaining = -1; // Cancel any scheduled disabling.
 
         task.start();
         return true;
@@ -95,14 +102,14 @@ public class TaskManager implements UpdateListener, LeaveGameSessionListener {
         task.terminate();
         task = null;
 
-        taskOutputHud.addMessage("§e[TASK ENDED]");
-        outputHudTicksRemaining = 10 * 20; // 10 seconds
+        taskHud.addMessage("§e[TASK ENDED]");
+        taskHudTicksRemaining = 10 * 20; // 10 seconds
         return true;
     }
 
     /**
      * Every tick, checking if the task is done and if it is, cleaning up.
-     * Also takes care of the outputHud scheduled disabling mechanic.
+     * Also takes care of the taskHud scheduled disabling mechanic.
      */
     @Override
     public void onUpdate() {
@@ -111,12 +118,12 @@ public class TaskManager implements UpdateListener, LeaveGameSessionListener {
             stopTask();
         }
 
-        // Decrementing outputHudTicksRemaining and when it reaches zero, hide the outputHud
-        if (outputHudTicksRemaining > 0) {
-            outputHudTicksRemaining--;
-        } else if (outputHudTicksRemaining == 0) {
-            outputHudTicksRemaining = -1;
-            taskOutputHud.disable();
+        // Decrementing taskHudTicksRemaining and when it reaches zero, hide the taskHud
+        if (taskHudTicksRemaining > 0) {
+            taskHudTicksRemaining--;
+        } else if (taskHudTicksRemaining == 0) {
+            taskHudTicksRemaining = -1;
+            taskHud.disable();
         }
     }
 
@@ -126,9 +133,9 @@ public class TaskManager implements UpdateListener, LeaveGameSessionListener {
     @Override
     public void onLeaveGameSession() {
         stopTask();
-        taskOutputHud.disable();
-        taskOutputHud.clear();
-        outputHudTicksRemaining = -1;
+        taskHud.disable();
+        taskHud.clear();
+        taskHudTicksRemaining = -1;
     }
 
 }

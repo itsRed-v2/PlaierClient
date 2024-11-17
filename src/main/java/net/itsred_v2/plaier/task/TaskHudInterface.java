@@ -1,6 +1,8 @@
 package net.itsred_v2.plaier.task;
 
-public interface TaskOutputConsumer {
+import java.util.List;
+
+public interface TaskHudInterface {
 
     void info(String message);
 
@@ -9,5 +11,7 @@ public interface TaskOutputConsumer {
     void fail(String message);
 
     void success(String message);
+
+    void setInfoLines(List<String> lines);
 
 }
