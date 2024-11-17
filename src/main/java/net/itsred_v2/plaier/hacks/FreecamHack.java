@@ -8,6 +8,7 @@ import net.itsred_v2.plaier.events.LeaveGameSessionListener;
 import net.itsred_v2.plaier.events.SetCamPosListener;
 import net.itsred_v2.plaier.events.SetCamRotationListener;
 import net.itsred_v2.plaier.events.UpdateListener;
+import net.itsred_v2.plaier.events.WorldJoinListener;
 import net.itsred_v2.plaier.utils.Toggleable;
 import net.itsred_v2.plaier.utils.control.PlayerController;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -19,7 +20,7 @@ import net.minecraft.util.math.Vec3d;
 
 public class FreecamHack extends Toggleable implements SetCamPosListener, SetCamRotationListener,
         AfterCameraUpdateListener, LeaveGameSessionListener, UpdateListener,
-        ChangeLookDirectionListener {
+        ChangeLookDirectionListener, WorldJoinListener {
 
     private Vec3d camPos;
     private float yaw;
@@ -45,6 +46,7 @@ public class FreecamHack extends Toggleable implements SetCamPosListener, SetCam
         PlaierClient.getEventManager().add(LeaveGameSessionListener.class, this);
         PlaierClient.getEventManager().add(UpdateListener.class, this);
         PlaierClient.getEventManager().add(ChangeLookDirectionListener.class, this);
+        PlaierClient.getEventManager().add(WorldJoinListener.class, this);
     }
 
     @Override
@@ -56,6 +58,7 @@ public class FreecamHack extends Toggleable implements SetCamPosListener, SetCam
         PlaierClient.getEventManager().remove(LeaveGameSessionListener.class, this);
         PlaierClient.getEventManager().remove(UpdateListener.class, this);
         PlaierClient.getEventManager().remove(ChangeLookDirectionListener.class, this);
+        PlaierClient.getEventManager().remove(WorldJoinListener.class, this);
     }
 
     public void setControllingPlayer(boolean controlPlayer) {
@@ -101,6 +104,14 @@ public class FreecamHack extends Toggleable implements SetCamPosListener, SetCam
     public void onLeaveGameSession() {
         // It is very important to disable this hack on session leave.
         // Changing saves with the hack enabled crashes the game
+        // by setting the camera's position to absurd values.
+        this.disable();
+    }
+
+    @Override
+    public void onWorldJoin() {
+        // It is very important to disable this hack on world (dimension) change.
+        // Changing worlds with the hack enabled can crash the game
         // by setting the camera's position to absurd values.
         this.disable();
     }
