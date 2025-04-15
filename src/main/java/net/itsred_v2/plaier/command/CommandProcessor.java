@@ -5,14 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.itsred_v2.plaier.commands.DebugCmd;
-import net.itsred_v2.plaier.commands.EchoCmd;
-import net.itsred_v2.plaier.commands.FreecamCmd;
-import net.itsred_v2.plaier.commands.HelpCommand;
-import net.itsred_v2.plaier.commands.LookAtCmd;
-import net.itsred_v2.plaier.commands.PathFindCmd;
-import net.itsred_v2.plaier.commands.SayCmd;
-import net.itsred_v2.plaier.commands.StopTaskCmd;
+import net.itsred_v2.plaier.commands.*;
 import net.itsred_v2.plaier.events.ChatOutputListener;
 import net.itsred_v2.plaier.utils.Messenger;
 
@@ -29,6 +22,7 @@ public class CommandProcessor implements ChatOutputListener {
         COMMAND_MAP.put("path", new PathFindCmd());
         COMMAND_MAP.put("fc", new FreecamCmd());
         COMMAND_MAP.put("debug", new DebugCmd());
+        COMMAND_MAP.put("autotool", new AutoToolCmd());
     }
 
     @Override

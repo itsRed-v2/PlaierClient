@@ -6,9 +6,10 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.client.option.GameOptions;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.world.GameMode;
-import net.minecraft.world.WorldView;
 
 public class MCInterface {
 
@@ -22,7 +23,7 @@ public class MCInterface {
         return Objects.requireNonNull(client.player);
     }
 
-    public WorldView getWorldView() {
+    public ClientWorld getWorld() {
         return Objects.requireNonNull(client.world);
     }
 
@@ -52,6 +53,10 @@ public class MCInterface {
 
     public GameMode getGameMode() {
         return Objects.requireNonNull(client.interactionManager).getCurrentGameMode();
+    }
+
+    public ClientPlayerInteractionManager getInteractionManager() {
+        return Objects.requireNonNull(client.interactionManager);
     }
 
 }
