@@ -108,7 +108,7 @@ public class WalkPathFindTask extends Task implements PlayerDeathListener, GameM
 
         BlockPos start = isUpdate ? path.get(updateIndex).getPos() : PlaierClient.getPlayer().getBlockPos();
         lastPathfindingStart = start;
-        PathFinder pathFinder = new ExplorerWalkPathFinder(PlaierClient.MC.getWorld(), start, goal);
+        PathFinder pathFinder = new ExplorerWalkPathFinder(PlaierClient.MC.getClientWorld(), start, goal);
 
         if (pathFinderWrapper != null)
             pathFinderWrapper.cancel();

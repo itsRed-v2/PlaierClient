@@ -23,6 +23,7 @@ public class CommandProcessor implements ChatOutputListener {
         COMMAND_MAP.put("fc", new FreecamCmd());
         COMMAND_MAP.put("debug", new DebugCmd());
         COMMAND_MAP.put("autotool", new AutoToolCmd());
+        COMMAND_MAP.put("pin", new PinCmd());
     }
 
     @Override

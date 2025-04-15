@@ -1,5 +1,8 @@
 package net.itsred_v2.plaier.hacks;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.events.AttackBlockListener;
 import net.itsred_v2.plaier.utils.Toggleable;
@@ -10,9 +13,6 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.GameMode;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class AutoToolHack extends Toggleable implements AttackBlockListener {
 
@@ -36,7 +36,7 @@ public class AutoToolHack extends Toggleable implements AttackBlockListener {
 
         ClientPlayerEntity player = PlaierClient.getPlayer();
         PlayerInventory inventory = player.getInventory();
-        BlockState blockState = PlaierClient.MC.getWorld().getBlockState(event.pos);
+        BlockState blockState = PlaierClient.MC.getClientWorld().getBlockState(event.pos);
 
         List<ItemStack> bestTools = new ArrayList<>();
         float bestMiningSpeed = 1;

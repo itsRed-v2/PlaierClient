@@ -33,9 +33,9 @@ public abstract class ClientPlayerInteractionManagerMixin {
 
     @Inject(method = "attackBlock", at = @At("HEAD"))
     public void onAttackBlock(BlockPos pos, Direction direction, CallbackInfoReturnable<Boolean> cir) {
-        if (PlaierClient.getPlayer().isBlockBreakingRestricted(PlaierClient.MC.getWorld(), pos, this.gameMode))
+        if (PlaierClient.getPlayer().isBlockBreakingRestricted(PlaierClient.MC.getClientWorld(), pos, this.gameMode))
             return;
-        if (!PlaierClient.MC.getWorld().getWorldBorder().contains(pos))
+        if (!PlaierClient.MC.getClientWorld().getWorldBorder().contains(pos))
             return;
 
         EventManager.fire(new AttackBlockListener.AttackBlockEvent(pos));

@@ -5,9 +5,11 @@ import java.util.Objects;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.client.option.GameOptions;
+import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.world.GameMode;
 
@@ -23,7 +25,7 @@ public class MCInterface {
         return Objects.requireNonNull(client.player);
     }
 
-    public ClientWorld getWorld() {
+    public ClientWorld getClientWorld() {
         return Objects.requireNonNull(client.world);
     }
 
@@ -57,6 +59,14 @@ public class MCInterface {
 
     public ClientPlayerInteractionManager getInteractionManager() {
         return Objects.requireNonNull(client.interactionManager);
+    }
+
+    public ClientPlayNetworkHandler getNetworkHandler() {
+        return Objects.requireNonNull(client.getNetworkHandler());
+    }
+
+    public RenderTickCounter getRenderTickCounter() {
+        return client.getRenderTickCounter();
     }
 
 }
