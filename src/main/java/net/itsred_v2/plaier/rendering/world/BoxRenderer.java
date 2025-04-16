@@ -8,7 +8,7 @@ import net.itsred_v2.plaier.events.BeforeDebugRenderListener;
 import net.itsred_v2.plaier.utils.Toggleable;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.WorldRenderer;
+import net.minecraft.client.render.VertexRendering;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
@@ -49,8 +49,7 @@ public class BoxRenderer extends Toggleable implements BeforeDebugRenderListener
 
         Vec3d cam = context.camera().getPos();
         Box drawnBox = box.offset(-cam.x, -cam.y, -cam.z);
-        WorldRenderer.drawBox(matrices, lineConsumer, drawnBox, red, green, blue, alpha);
-
+        VertexRendering.drawBox(matrices, lineConsumer, drawnBox, red, green, blue, alpha);
     }
 
 

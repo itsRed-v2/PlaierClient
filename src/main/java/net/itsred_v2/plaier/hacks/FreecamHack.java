@@ -23,9 +23,9 @@ public class FreecamHack extends Toggleable implements SetCamPosListener, SetCam
         ChangeLookDirectionListener, WorldJoinListener {
 
     private Vec3d camPos;
+    private Vec3d prevCamPos;
     private float yaw;
     private float pitch;
-    private Vec3d movement = Vec3d.ZERO;
     private PlayerController playerController;
     private boolean controlPlayer = false;
 
@@ -37,6 +37,7 @@ public class FreecamHack extends Toggleable implements SetCamPosListener, SetCam
 
         ClientPlayerEntity player = PlaierClient.getPlayer();
         this.camPos = player.getEyePos();
+        this.prevCamPos = player.getEyePos();
         this.yaw = player.getYaw();
         this.pitch = player.getPitch();
 
@@ -78,12 +79,10 @@ public class FreecamHack extends Toggleable implements SetCamPosListener, SetCam
 
     @Override
     public void onSetCamPos(SetCamPosEvent event) {
-        // This is called every frame.
-        // We move the camera proportionally to the last frame
-        // duration so speed is constant, regardless of frame rate.
-        this.camPos = camPos.add(this.movement.multiply(PlaierClient.MC.getLastFrameDurationInTicks()));
-        // Then replace the game's camera position with our custom position.
-        event.setPosition(this.camPos);
+        // Lerp between previous and current camera pos for smooth movement
+        Vec3d lerpedPos = this.prevCamPos.lerp(this.camPos, PlaierClient.MC.getTickProgress());
+        // Replace the game's camera position with our custom position.
+        event.setPosition(lerpedPos);
     }
 
     @Override
@@ -116,34 +115,40 @@ public class FreecamHack extends Toggleable implements SetCamPosListener, SetCam
         this.disable();
     }
 
+    // TODO: add sprinting for freecam
     @Override
     public void onUpdate() {
+        Vec3d movement;
+
         // If we are controlling the player and not the camera,
         // OR if any screen is open (such as chat or inventory)
         // then, don't process camera movements.
         if (controlPlayer || PlaierClient.MC.getCurrentScreen() != null) {
-            this.movement = Vec3d.ZERO;
-            return;
+            movement = Vec3d.ZERO;
+        } else {
+            double movementForward = 0;
+            double movementRight = 0;
+            double movementUp = 0;
+
+            GameOptions options = PlaierClient.MC.getOptions();
+            if (isKeyPressed(options.forwardKey)) movementForward += 1;
+            if (isKeyPressed(options.backKey)) movementForward -= 1;
+            if (isKeyPressed(options.rightKey)) movementRight += 1;
+            if (isKeyPressed(options.leftKey)) movementRight -= 1;
+            if (isKeyPressed(options.jumpKey)) movementUp += 1;
+            if (isKeyPressed(options.sneakKey)) movementUp -= 1;
+
+            // I don't clearly understand this math compound, but it transforms
+            // the movement vector from player-oriented space to world-oriented space.
+            double yawInRad = Math.toRadians(this.yaw);
+            double movementX = - Math.sin(yawInRad) * movementForward - Math.cos(yawInRad) * movementRight;
+            double movementZ = Math.cos(yawInRad) * movementForward - Math.sin(yawInRad) * movementRight;
+            movement = new Vec3d(movementX, movementUp, movementZ).normalize();
         }
 
-        double movementForward = 0;
-        double movementRight = 0;
-        double movementUp = 0;
-
-        GameOptions options = PlaierClient.MC.getOptions();
-        if (isKeyPressed(options.forwardKey)) movementForward += 1;
-        if (isKeyPressed(options.backKey)) movementForward -= 1;
-        if (isKeyPressed(options.rightKey)) movementRight += 1;
-        if (isKeyPressed(options.leftKey)) movementRight -= 1;
-        if (isKeyPressed(options.jumpKey)) movementUp += 1;
-        if (isKeyPressed(options.sneakKey)) movementUp -= 1;
-
-        // I don't clearly understand this math compound, but it transforms
-        // the movement vector from player-relative space to world space.
-        double yawInRad = Math.toRadians(this.yaw);
-        double movementX = - Math.sin(yawInRad) * movementForward - Math.cos(yawInRad) * movementRight;
-        double movementZ = Math.cos(yawInRad) * movementForward - Math.sin(yawInRad) * movementRight;
-        this.movement = new Vec3d(movementX, movementUp, movementZ).normalize();
+        // Apply the movement vector
+        this.prevCamPos = this.camPos;
+        this.camPos = this.camPos.add(movement);
     }
 
     public static boolean isKeyPressed(KeyBinding keyBinding) {

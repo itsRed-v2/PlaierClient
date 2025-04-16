@@ -17,9 +17,9 @@ import org.jetbrains.annotations.NotNull;
 public class TaskHud extends Toggleable implements GuiRenderListener {
 
     private static final float GUI_SCALE = 0.5f;
-    private static final int BAR_BACKGROUND_COLOR = ColorHelper.Argb.getArgb(144, 70, 70, 70);
-    private static final int BACKGROUND_COLOR = ColorHelper.Argb.getArgb(144, 80, 80, 80);
-    private static final int TEXT_COLOR = ColorHelper.Argb.getArgb(255, 255, 255, 255);
+    private static final int BAR_BACKGROUND_COLOR = ColorHelper.getArgb(144, 70, 70, 70);
+    private static final int BACKGROUND_COLOR = ColorHelper.getArgb(144, 80, 80, 80);
+    private static final int TEXT_COLOR = ColorHelper.getArgb(255, 255, 255, 255);
     private static final int WIDGET_WIDTH = 300;
     private static final int WIDGET_LINE_COUNT = 11;
     /**
@@ -82,7 +82,7 @@ public class TaskHud extends Toggleable implements GuiRenderListener {
             int age = tick - line.addedAt;
             int bgOpacity = 64 - (64 * age / LINE_HIGHLIGHT_DURATION);
             if (bgOpacity > 0) {
-                int bgColor = ColorHelper.Argb.getArgb(bgOpacity, 255, 255, 255);
+                int bgColor = ColorHelper.getArgb(bgOpacity, 255, 255, 255);
                 context.fill(0, posY - 1, WIDGET_WIDTH, posY - 1 + lineHeight, bgColor);
             }
             
@@ -113,7 +113,7 @@ public class TaskHud extends Toggleable implements GuiRenderListener {
                 PlaierClient.MC.getTextRenderer()
         );
         for (OrderedText line : newLines) {
-            this.lines.add(0, new LogLine(line, addedAt));
+            this.lines.addFirst(new LogLine(line, addedAt));
         }
     }
 

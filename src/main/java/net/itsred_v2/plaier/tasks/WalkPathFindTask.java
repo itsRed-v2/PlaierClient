@@ -53,9 +53,9 @@ public class WalkPathFindTask extends Task implements PlayerDeathListener, GameM
             return;
         }
 
-        bluePathRenderer = new PolylineRenderer(ColorHelper.Argb.getArgb(255, 0, 255, 255));
+        bluePathRenderer = new PolylineRenderer(ColorHelper.getArgb(255, 0, 255, 255));
         bluePathRenderer.enable();
-        redPathRenderer = new PolylineRenderer(ColorHelper.Argb.getArgb(255, 255, 0, 0));
+        redPathRenderer = new PolylineRenderer(ColorHelper.getArgb(255, 255, 0, 0));
         redPathRenderer.enable();
 
         playerController = new PlayerController();

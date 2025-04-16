@@ -2,7 +2,6 @@ package net.itsred_v2.plaier.hacks;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.OptionalDouble;
 import java.util.UUID;
 
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -13,11 +12,7 @@ import net.itsred_v2.plaier.utils.Toggleable;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.RenderPhase;
 import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.VertexFormat;
-import net.minecraft.client.render.VertexFormats;
 import net.minecraft.util.math.ColorHelper;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
@@ -26,20 +21,20 @@ import org.joml.Vector4f;
 
 public class PinHack extends Toggleable implements BeforeDebugRenderListener, GuiRenderListener {
 
-    private static final RenderLayer.MultiPhase DEBUG_LINES = RenderLayer.of(
-            "debug_lines",
-            VertexFormats.POSITION_COLOR,
-            VertexFormat.DrawMode.DEBUG_LINES,
-            1536,
-            RenderLayer.MultiPhaseParameters.builder()
-                    .program(RenderPhase.COLOR_PROGRAM)
-                    .lineWidth(new RenderPhase.LineWidth(OptionalDouble.of(1.0)))
-                    .transparency(RenderPhase.TRANSLUCENT_TRANSPARENCY)
-                    .cull(RenderPhase.DISABLE_CULLING)
-                    .build(false)
-    );
+//    private static final RenderLayer.MultiPhase DEBUG_LINES = RenderLayer.of(
+//            "debug_lines",
+//            VertexFormats.POSITION_COLOR,
+//            VertexFormat.DrawMode.DEBUG_LINES,
+//            1536,
+//            RenderLayer.MultiPhaseParameters.builder()
+//                    .program(RenderPhase.COLOR_PROGRAM)
+//                    .lineWidth(new RenderPhase.LineWidth(OptionalDouble.of(1.0)))
+//                    .transparency(RenderPhase.TRANSLUCENT_TRANSPARENCY)
+//                    .cull(RenderPhase.DISABLE_CULLING)
+//                    .build(false)
+//    );
 
-    private static final int LINE_COLOR = ColorHelper.Argb.getArgb(0, 255, 0);
+    private static final int LINE_COLOR = ColorHelper.getArgb(0, 255, 0);
 
     private final List<UUID> pinnedPlayers = new ArrayList<>();
 
@@ -49,8 +44,10 @@ public class PinHack extends Toggleable implements BeforeDebugRenderListener, Gu
 
     @Override
     protected void onEnable() {
-        PlaierClient.getEventManager().add(BeforeDebugRenderListener.class, this);
-        PlaierClient.getEventManager().add(GuiRenderListener.class, this);
+        throw new RuntimeException("This feature is broken");
+
+//        PlaierClient.getEventManager().add(BeforeDebugRenderListener.class, this);
+//        PlaierClient.getEventManager().add(GuiRenderListener.class, this);
     }
 
     @Override
@@ -69,7 +66,7 @@ public class PinHack extends Toggleable implements BeforeDebugRenderListener, Gu
 
     @Override
     public void onGuiRender(GuiRenderEvent event) {
-        float tickDelta = PlaierClient.MC.getRenderTickCounter().getTickDelta(false);
+        float tickDelta = PlaierClient.MC.getTickProgress();
 
         for (AbstractClientPlayerEntity player : PlaierClient.MC.getClientWorld().getPlayers()) {
             if (pinnedPlayers.contains(player.getGameProfile().getId())) {
@@ -80,8 +77,7 @@ public class PinHack extends Toggleable implements BeforeDebugRenderListener, Gu
 
                 Vector3d targetScreenPos = projectWorldCoordinatesToScreenCoordinates(targetPos, context);
 
-                VertexConsumerProvider.Immediate vertexConsumerProvider = event.getContext().getVertexConsumers();
-                VertexConsumer consumer = vertexConsumerProvider.getBuffer(DEBUG_LINES);
+                VertexConsumer consumer = event.getContext().vertexConsumers.getBuffer(RenderLayer.getDebugCrosshair(1.0f));
 
                 float halfWidth = (float) context.getScaledWindowWidth() / 2f;
                 float halfHeight = (float) context.getScaledWindowHeight() / 2f;

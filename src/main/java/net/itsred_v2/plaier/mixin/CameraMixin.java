@@ -36,14 +36,14 @@ public abstract class CameraMixin {
     }
 
     @Redirect(method = "update",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/Camera;setRotation(FF)V", ordinal = 0))
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/Camera;setRotation(FF)V", ordinal = 1))
     public void setRotationRedirect(Camera instance, float yaw, float pitch) {
         setRotationRedirectImpl(yaw, pitch);
     }
 
     @Redirect(method = "update",
-            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/Camera;setRotation(FF)V", ordinal = 2))
-    public void setRotationRedirectSleeping(Camera instance, float yaw, float pitch) {
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/Camera;setRotation(FF)V", ordinal = 3))
+    public void setRotationSleepingRedirect(Camera instance, float yaw, float pitch) {
         setRotationRedirectImpl(yaw, pitch);
     }
 
