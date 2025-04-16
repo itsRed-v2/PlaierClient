@@ -11,21 +11,16 @@ import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexRendering;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.Box;
+import net.minecraft.util.math.ColorHelper;
 import net.minecraft.util.math.Vec3d;
 
 public class BoxRenderer extends Toggleable implements BeforeDebugRenderListener {
 
-    public final float red;
-    public final float green;
-    public final float blue;
-    public final float alpha;
+    public final int color;
     public Box box = null;
 
-    public BoxRenderer(float red, float green, float blue, float alpha) {
-        this.red = red;
-        this.green = green;
-        this.blue = blue;
-        this.alpha = alpha;
+    public BoxRenderer(int color) {
+        this.color = color;
     }
 
     @Override
@@ -49,7 +44,16 @@ public class BoxRenderer extends Toggleable implements BeforeDebugRenderListener
 
         Vec3d cam = context.camera().getPos();
         Box drawnBox = box.offset(-cam.x, -cam.y, -cam.z);
-        VertexRendering.drawBox(matrices, lineConsumer, drawnBox, red, green, blue, alpha);
+
+        VertexRendering.drawBox(
+                matrices,
+                lineConsumer,
+                drawnBox,
+                ColorHelper.getRedFloat(color),
+                ColorHelper.getGreenFloat(color),
+                ColorHelper.getBlueFloat(color),
+                ColorHelper.getAlphaFloat(color)
+        );
     }
 
 

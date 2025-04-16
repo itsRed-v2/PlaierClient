@@ -1,18 +1,23 @@
 package net.itsred_v2.plaier.hacks;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.events.BeforeDebugRenderListener;
 import net.itsred_v2.plaier.events.GuiRenderListener;
+import net.itsred_v2.plaier.rendering.world.BoxRenderer;
 import net.itsred_v2.plaier.utils.Toggleable;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.ColorHelper;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
@@ -21,22 +26,12 @@ import org.joml.Vector4f;
 
 public class PinHack extends Toggleable implements BeforeDebugRenderListener, GuiRenderListener {
 
-//    private static final RenderLayer.MultiPhase DEBUG_LINES = RenderLayer.of(
-//            "debug_lines",
-//            VertexFormats.POSITION_COLOR,
-//            VertexFormat.DrawMode.DEBUG_LINES,
-//            1536,
-//            RenderLayer.MultiPhaseParameters.builder()
-//                    .program(RenderPhase.COLOR_PROGRAM)
-//                    .lineWidth(new RenderPhase.LineWidth(OptionalDouble.of(1.0)))
-//                    .transparency(RenderPhase.TRANSLUCENT_TRANSPARENCY)
-//                    .cull(RenderPhase.DISABLE_CULLING)
-//                    .build(false)
-//    );
-
-    private static final int LINE_COLOR = ColorHelper.getArgb(0, 255, 0);
+    private static final int PLAYER_LINE_COLOR = ColorHelper.getArgb(0, 255, 0);
+    private static final int POSITION_LINE_COLOR = ColorHelper.getArgb(0, 255, 255);
+    private static final int POSITION_BOX_COLOR = ColorHelper.getArgb(64, 0, 255, 255);
 
     private final List<UUID> pinnedPlayers = new ArrayList<>();
+    private final Map<BlockPos, BoxRenderer> pinnedPositions = new HashMap<>();
 
     private Matrix4f projectionMatrix = new Matrix4f();
     private Matrix4f modelViewMatrix = new Matrix4f();
@@ -44,10 +39,8 @@ public class PinHack extends Toggleable implements BeforeDebugRenderListener, Gu
 
     @Override
     protected void onEnable() {
-        throw new RuntimeException("This feature is broken");
-
-//        PlaierClient.getEventManager().add(BeforeDebugRenderListener.class, this);
-//        PlaierClient.getEventManager().add(GuiRenderListener.class, this);
+        PlaierClient.getEventManager().add(BeforeDebugRenderListener.class, this);
+        PlaierClient.getEventManager().add(GuiRenderListener.class, this);
     }
 
     @Override
@@ -67,45 +60,27 @@ public class PinHack extends Toggleable implements BeforeDebugRenderListener, Gu
     @Override
     public void onGuiRender(GuiRenderEvent event) {
         float tickDelta = PlaierClient.MC.getTickProgress();
+        DrawContext context = event.getContext();
+        VertexConsumer consumer = event.getContext().vertexConsumers.getBuffer(RenderLayer.getDebugLineStrip(1.0f));
+        float halfWidth = (float) context.getScaledWindowWidth() / 2f;
+        float halfHeight = (float) context.getScaledWindowHeight() / 2f;
+        Matrix4f identity = new Matrix4f();
 
         for (AbstractClientPlayerEntity player : PlaierClient.MC.getClientWorld().getPlayers()) {
             if (pinnedPlayers.contains(player.getGameProfile().getId())) {
-                DrawContext context = event.getContext();
-
                 Vec3d deltaOffset = player.getLerpedPos(tickDelta).subtract(player.getPos());
                 Vec3d targetPos = player.getBoundingBox().getCenter().add(deltaOffset);
-
                 Vector3d targetScreenPos = projectWorldCoordinatesToScreenCoordinates(targetPos, context);
-
-                VertexConsumer consumer = event.getContext().vertexConsumers.getBuffer(RenderLayer.getDebugCrosshair(1.0f));
-
-                float halfWidth = (float) context.getScaledWindowWidth() / 2f;
-                float halfHeight = (float) context.getScaledWindowHeight() / 2f;
-
-                Matrix4f identity = new Matrix4f();
-                consumer.vertex(identity, halfWidth - 0.5f, halfHeight - 0.5f, 0.0f).color(LINE_COLOR);
-                consumer.vertex(identity, (float) targetScreenPos.x, (float) targetScreenPos.y, 0.0f).color(LINE_COLOR);
+                consumer.vertex(identity, halfWidth - 0.5f, halfHeight - 0.5f, 0.0f).color(PLAYER_LINE_COLOR);
+                consumer.vertex(identity, (float) targetScreenPos.x, (float) targetScreenPos.y, 0.0f).color(PLAYER_LINE_COLOR);
             }
         }
-    }
 
-    public boolean hasPlayer(UUID playerUuid) {
-        return pinnedPlayers.contains(playerUuid);
-    }
-
-    public void addPlayer(UUID playerUuid) {
-        if (!pinnedPlayers.contains(playerUuid))
-            pinnedPlayers.add(playerUuid);
-
-        if (!this.isEnabled())
-            this.enable();
-    }
-
-    public void removePlayer(UUID playerUuid) {
-        pinnedPlayers.remove(playerUuid);
-        
-        if (pinnedPlayers.isEmpty())
-            this.disable();
+        for (BlockPos pos : pinnedPositions.keySet()) {
+            Vector3d targetScreenPos = projectWorldCoordinatesToScreenCoordinates(pos.toCenterPos(), context);
+            consumer.vertex(identity, halfWidth - 0.5f, halfHeight - 0.5f, 0.0f).color(POSITION_LINE_COLOR);
+            consumer.vertex(identity, (float) targetScreenPos.x, (float) targetScreenPos.y, 0.0f).color(POSITION_LINE_COLOR);
+        }
     }
 
     private Vector3d projectWorldCoordinatesToScreenCoordinates(Vec3d worldPos, DrawContext context) {
@@ -130,6 +105,51 @@ public class PinHack extends Toggleable implements BeforeDebugRenderListener, Gu
         screenCoordinates.y = (-screenCoordinates.y + 1) * halfHeight;
 
         return screenCoordinates;
+    }
+
+    public boolean hasPlayer(UUID playerUuid) {
+        return pinnedPlayers.contains(playerUuid);
+    }
+
+    public void addPlayer(UUID playerUuid) {
+        if (!pinnedPlayers.contains(playerUuid))
+            pinnedPlayers.add(playerUuid);
+
+        if (!this.isEnabled())
+            this.enable();
+    }
+
+    public void removePlayer(UUID playerUuid) {
+        pinnedPlayers.remove(playerUuid);
+
+        if (pinnedPlayers.isEmpty() && pinnedPositions.isEmpty())
+            this.disable();
+    }
+
+    public boolean hasPosition(BlockPos pos) {
+        return pinnedPositions.containsKey(pos);
+    }
+
+    public void addPosition(BlockPos pos) {
+        if (!pinnedPositions.containsKey(pos)) {
+            BoxRenderer boxRenderer = new BoxRenderer(POSITION_BOX_COLOR);
+            boxRenderer.box = new Box(pos);
+            boxRenderer.enable();
+            pinnedPositions.put(pos, boxRenderer);
+        }
+
+        if (!this.isEnabled())
+            this.enable();
+    }
+
+    public void removePosition(BlockPos pos) {
+        if (pinnedPositions.containsKey(pos)) {
+            pinnedPositions.get(pos).disable();
+            pinnedPositions.remove(pos);
+        }
+
+        if (pinnedPlayers.isEmpty() && pinnedPositions.isEmpty())
+            this.disable();
     }
 
 }

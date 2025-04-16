@@ -17,12 +17,13 @@ import net.itsred_v2.plaier.utils.control.RotationUtils;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
+import net.minecraft.util.math.ColorHelper;
 import net.minecraft.util.math.Vec3d;
 
 public class WalkPathProcessor extends Task implements UpdateListener {
 
     private static final int MAX_TICKS_OFF_PATH = 20; // 1 second
-    public static final BoxRenderer debugRenderer = new BoxRenderer(1.0f, 0.0f, 0.0f, 0.8f);
+    public static final BoxRenderer debugRenderer = new BoxRenderer(ColorHelper.fromFloats(0.8f, 1.0f, 0.0f, 0.0f));
 
     private TaskState state = TaskState.READY;
     private final PathFinder.PathValidator pathValidator;
