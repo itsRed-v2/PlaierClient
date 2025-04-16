@@ -4,7 +4,9 @@ import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.events.AfterCameraUpdateListener;
 import net.itsred_v2.plaier.events.ChangeLookDirectionListener;
+import net.itsred_v2.plaier.events.KeyListener;
 import net.itsred_v2.plaier.events.LeaveGameSessionListener;
+import net.itsred_v2.plaier.events.PlayerDeathListener;
 import net.itsred_v2.plaier.events.SetCamPosListener;
 import net.itsred_v2.plaier.events.SetCamRotationListener;
 import net.itsred_v2.plaier.events.UpdateListener;
@@ -14,13 +16,14 @@ import net.itsred_v2.plaier.utils.control.PlayerController;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.option.Perspective;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 
 public class FreecamHack extends Toggleable implements SetCamPosListener, SetCamRotationListener,
         AfterCameraUpdateListener, LeaveGameSessionListener, UpdateListener,
-        ChangeLookDirectionListener, WorldJoinListener {
+        ChangeLookDirectionListener, WorldJoinListener, PlayerDeathListener, KeyListener {
 
     private Vec3d camPos;
     private Vec3d prevCamPos;
@@ -34,6 +37,7 @@ public class FreecamHack extends Toggleable implements SetCamPosListener, SetCam
         this.controlPlayer = false;
         this.playerController = new PlayerController();
         this.playerController.enable();
+        PlaierClient.MC.getOptions().setPerspective(Perspective.FIRST_PERSON);
 
         ClientPlayerEntity player = PlaierClient.getPlayer();
         this.camPos = player.getEyePos();
@@ -48,6 +52,8 @@ public class FreecamHack extends Toggleable implements SetCamPosListener, SetCam
         PlaierClient.getEventManager().add(UpdateListener.class, this);
         PlaierClient.getEventManager().add(ChangeLookDirectionListener.class, this);
         PlaierClient.getEventManager().add(WorldJoinListener.class, this);
+        PlaierClient.getEventManager().add(PlayerDeathListener.class, this);
+        PlaierClient.getEventManager().add(KeyListener.class, this);
     }
 
     @Override
@@ -60,6 +66,8 @@ public class FreecamHack extends Toggleable implements SetCamPosListener, SetCam
         PlaierClient.getEventManager().remove(UpdateListener.class, this);
         PlaierClient.getEventManager().remove(ChangeLookDirectionListener.class, this);
         PlaierClient.getEventManager().remove(WorldJoinListener.class, this);
+        PlaierClient.getEventManager().remove(PlayerDeathListener.class, this);
+        PlaierClient.getEventManager().remove(KeyListener.class, this);
     }
 
     public void setControllingPlayer(boolean controlPlayer) {
@@ -115,7 +123,11 @@ public class FreecamHack extends Toggleable implements SetCamPosListener, SetCam
         this.disable();
     }
 
-    // TODO: add sprinting for freecam
+    @Override
+    public void onPlayerDeath() {
+        this.disable();
+    }
+
     @Override
     public void onUpdate() {
         Vec3d movement;
@@ -144,6 +156,10 @@ public class FreecamHack extends Toggleable implements SetCamPosListener, SetCam
             double movementX = - Math.sin(yawInRad) * movementForward - Math.cos(yawInRad) * movementRight;
             double movementZ = Math.cos(yawInRad) * movementForward - Math.sin(yawInRad) * movementRight;
             movement = new Vec3d(movementX, movementUp, movementZ).normalize();
+
+            if (isKeyPressed(options.sprintKey)) {
+                movement = movement.multiply(2);
+            }
         }
 
         // Apply the movement vector
@@ -166,5 +182,12 @@ public class FreecamHack extends Toggleable implements SetCamPosListener, SetCam
         this.pitch += (float) event.cursorDeltaY * 0.15f;
         this.yaw += (float) event.cursorDeltaX * 0.15f;
         this.pitch = MathHelper.clamp(this.pitch, -90.0f, 90.0f);
+    }
+
+    @Override
+    public void onKey(KeyEvent event) {
+        if (PlaierClient.MC.getOptions().togglePerspectiveKey.equals(event.keyBinding)) {
+            event.cancel();
+        }
     }
 }

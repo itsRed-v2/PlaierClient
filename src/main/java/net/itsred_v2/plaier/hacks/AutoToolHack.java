@@ -54,8 +54,6 @@ public class AutoToolHack extends Toggleable implements AttackBlockListener {
         List<ItemStack> bestTools = new ArrayList<>();
         float bestMiningSpeed = 1;
 
-        // TODO: don't select item if durability is low
-        // TODO: check if offhand item is selectable
         for (int i = 0; i < inventory.getMainStacks().size(); i++) {
             ItemStack itemStack = inventory.getMainStacks().get(i);
             if (itemStack.isEmpty()) continue;
