@@ -1,11 +1,5 @@
 package net.itsred_v2.plaier.hacks;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.events.BeforeDebugRenderListener;
@@ -23,6 +17,8 @@ import net.minecraft.util.math.Vec3d;
 import org.joml.Matrix4f;
 import org.joml.Vector3d;
 import org.joml.Vector4f;
+
+import java.util.*;
 
 public class PinHack extends Toggleable implements BeforeDebugRenderListener, GuiRenderListener {
 
@@ -62,8 +58,8 @@ public class PinHack extends Toggleable implements BeforeDebugRenderListener, Gu
         float tickDelta = PlaierClient.MC.getTickProgress();
         DrawContext context = event.getContext();
         VertexConsumer consumer = event.getContext().vertexConsumers.getBuffer(RenderLayer.getDebugLineStrip(1.0f));
-        float halfWidth = (float) context.getScaledWindowWidth() / 2f;
-        float halfHeight = (float) context.getScaledWindowHeight() / 2f;
+        float centerX = (float) context.getScaledWindowWidth() / 2f;
+        float centerY = (float) context.getScaledWindowHeight() / 2f;
         Matrix4f identity = new Matrix4f();
 
         for (AbstractClientPlayerEntity player : PlaierClient.MC.getClientWorld().getPlayers()) {
@@ -71,14 +67,21 @@ public class PinHack extends Toggleable implements BeforeDebugRenderListener, Gu
                 Vec3d deltaOffset = player.getLerpedPos(tickDelta).subtract(player.getPos());
                 Vec3d targetPos = player.getBoundingBox().getCenter().add(deltaOffset);
                 Vector3d targetScreenPos = projectWorldCoordinatesToScreenCoordinates(targetPos, context);
-                consumer.vertex(identity, halfWidth - 0.5f, halfHeight - 0.5f, 0.0f).color(PLAYER_LINE_COLOR);
+                consumer.vertex(identity, centerX, centerY, 0.0f).color(PLAYER_LINE_COLOR);
                 consumer.vertex(identity, (float) targetScreenPos.x, (float) targetScreenPos.y, 0.0f).color(PLAYER_LINE_COLOR);
             }
         }
 
+        // Add a vertex with PLAYER_LINE_COLOR at the center of the screen,
+        // so the transition between the two colors happens in a line that
+        // is 0 pixels long (from center of screen to center of screen)
+        // Without this, the last line from player pins would be a gradient
+        // from PLAYER_LINE_COLOR to POSITION_LINE_COLOR
+        consumer.vertex(identity, centerX, centerY, 0.0f).color(PLAYER_LINE_COLOR);
+
         for (BlockPos pos : pinnedPositions.keySet()) {
             Vector3d targetScreenPos = projectWorldCoordinatesToScreenCoordinates(pos.toCenterPos(), context);
-            consumer.vertex(identity, halfWidth - 0.5f, halfHeight - 0.5f, 0.0f).color(POSITION_LINE_COLOR);
+            consumer.vertex(identity, centerX, centerY, 0.0f).color(POSITION_LINE_COLOR);
             consumer.vertex(identity, (float) targetScreenPos.x, (float) targetScreenPos.y, 0.0f).color(POSITION_LINE_COLOR);
         }
     }
