@@ -1,10 +1,10 @@
 package net.itsred_v2.plaier.commands;
 
-import java.util.List;
-
 import net.itsred_v2.plaier.command.Command;
 import net.itsred_v2.plaier.hacks.FreecamHack;
 import net.itsred_v2.plaier.utils.Messenger;
+
+import java.util.List;
 
 public class FreecamCmd implements Command {
 
@@ -21,7 +21,7 @@ public class FreecamCmd implements Command {
         if (args.isEmpty()) {
             toggleFreecam();
         } else {
-            String firstArg = args.get(0);
+            String firstArg = args.getFirst();
             if (firstArg.equals("switch") || firstArg.equals("s")) {
                 switchControl();
             } else {
@@ -47,10 +47,10 @@ public class FreecamCmd implements Command {
 
         if (freecamHack.isControllingPlayer()) {
             freecamHack.setControllingPlayer(false);
-            Messenger.chat("Freecam: Now controlling §bcamera§r.");
+            Messenger.overlay("Freecam: Now controlling §bcamera§r.");
         } else {
             freecamHack.setControllingPlayer(true);
-            Messenger.chat("Freecam: Now controlling §6player§r.");
+            Messenger.overlay("Freecam: Now controlling §6player§r.");
         }
     }
 

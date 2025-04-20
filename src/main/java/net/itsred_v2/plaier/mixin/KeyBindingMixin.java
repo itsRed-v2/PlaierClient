@@ -3,7 +3,7 @@ package net.itsred_v2.plaier.mixin;
 import java.util.Map;
 
 import net.itsred_v2.plaier.event.EventManager;
-import net.itsred_v2.plaier.events.KeyListener;
+import net.itsred_v2.plaier.events.KeyListener.KeyEvent;
 import net.itsred_v2.plaier.mixinterface.KeyBindingInterface;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
@@ -28,20 +28,19 @@ public abstract class KeyBindingMixin implements Comparable<KeyBinding>, KeyBind
         KeyBinding keyBinding = KEY_TO_BINDINGS.get(key);
         if (keyBinding == null)
             return;
-        KeyListener.KeyEvent event = new KeyListener.KeyEvent(keyBinding);
+        KeyEvent event = new KeyEvent(keyBinding, KeyEvent.Method.ON_PRESS, true);
         EventManager.fire(event);
 
         if (event.isCancelled())
             ci.cancel();
     }
 
-    @SuppressWarnings("UnreachableCode")
     @Inject(method = "setPressed",
             at = @At("HEAD"),
             cancellable = true)
     public void setPressed(boolean pressed, CallbackInfo ci) {
         KeyBinding instance = (KeyBinding) (Object) this;
-        KeyListener.KeyEvent event = new KeyListener.KeyEvent(instance);
+        KeyEvent event = new KeyEvent(instance, KeyEvent.Method.SET_PRESSED, pressed);
         EventManager.fire(event);
 
         if (event.isCancelled())

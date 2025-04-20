@@ -24,6 +24,7 @@ public class CommandProcessor implements ChatOutputListener {
         COMMAND_MAP.put("debug", new DebugCmd());
         COMMAND_MAP.put("autotool", new AutoToolCmd());
         COMMAND_MAP.put("pin", new PinCmd());
+        COMMAND_MAP.put("overlay", new OverlayCmd());
     }
 
     @Override
@@ -37,7 +38,7 @@ public class CommandProcessor implements ChatOutputListener {
         message = message.substring(1); // removing the command token
         List<String> args = new ArrayList<>(List.of(message.split(" ")));
 
-        String commandName = args.remove(0);
+        String commandName = args.removeFirst();
         Command cmd = COMMAND_MAP.get(commandName);
 
         if (cmd == null) {

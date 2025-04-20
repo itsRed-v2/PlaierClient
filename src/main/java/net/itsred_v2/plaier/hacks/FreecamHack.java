@@ -11,6 +11,7 @@ import net.itsred_v2.plaier.events.SetCamPosListener;
 import net.itsred_v2.plaier.events.SetCamRotationListener;
 import net.itsred_v2.plaier.events.UpdateListener;
 import net.itsred_v2.plaier.events.WorldJoinListener;
+import net.itsred_v2.plaier.utils.Messenger;
 import net.itsred_v2.plaier.utils.Toggleable;
 import net.itsred_v2.plaier.utils.control.PlayerController;
 import net.minecraft.client.network.ClientPlayerEntity;
@@ -188,6 +189,8 @@ public class FreecamHack extends Toggleable implements SetCamPosListener, SetCam
     public void onKey(KeyEvent event) {
         if (PlaierClient.MC.getOptions().togglePerspectiveKey.equals(event.keyBinding)) {
             event.cancel();
+            if (event.method == KeyEvent.Method.ON_PRESS)
+                Messenger.overlay("Third-person mode cannot be enabled in freecam.");
         }
     }
 }
