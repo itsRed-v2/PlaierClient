@@ -1,6 +1,6 @@
 package net.itsred_v2.plaier.mixin;
 
-import net.itsred_v2.plaier.event.EventManager;
+import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.events.AfterCameraUpdateListener;
 import net.itsred_v2.plaier.events.SetCamPosListener;
 import net.itsred_v2.plaier.events.SetCamRotationListener;
@@ -31,7 +31,7 @@ public abstract class CameraMixin {
                     target = "Lnet/minecraft/client/render/Camera;setPos(DDD)V"))
     public void setPosRedirect(Camera instance, double x, double y, double z) {
         SetCamPosListener.SetCamPosEvent event = new SetCamPosListener.SetCamPosEvent(new Vec3d(x, y, z));
-        EventManager.fire(event);
+        PlaierClient.getEventManager().fire(event);
         this.setPos(event.getPosition());
     }
 
@@ -50,14 +50,14 @@ public abstract class CameraMixin {
     @Unique
     private void setRotationRedirectImpl(float yaw, float pitch) {
         SetCamRotationListener.SetCamRotationEvent event = new SetCamRotationListener.SetCamRotationEvent(yaw, pitch);
-        EventManager.fire(event);
+        PlaierClient.getEventManager().fire(event);
         this.setRotation(event.yaw, event.pitch);
     }
 
     @Inject(method = "update", at = @At("TAIL"))
     public void update(BlockView area, Entity focusedEntity, boolean thirdPerson, boolean inverseView, float tickDelta, CallbackInfo ci) {
         AfterCameraUpdateListener.AfterCameraUpdateEvent event = new AfterCameraUpdateListener.AfterCameraUpdateEvent(thirdPerson);
-        EventManager.fire(event);
+        PlaierClient.getEventManager().fire(event);
 
         if (event.thirdPerson != thirdPerson) {
             this.thirdPerson = event.thirdPerson;

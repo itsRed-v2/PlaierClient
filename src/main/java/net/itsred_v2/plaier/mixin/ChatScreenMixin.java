@@ -1,6 +1,6 @@
 package net.itsred_v2.plaier.mixin;
 
-import net.itsred_v2.plaier.event.EventManager;
+import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.events.ChatOutputListener;
 import net.minecraft.client.gui.screen.ChatScreen;
 import net.minecraft.client.gui.screen.Screen;
@@ -24,7 +24,7 @@ public abstract class ChatScreenMixin extends Screen {
             cancellable = true)
     public void onSendMessage(String chatText, boolean addToHistory, CallbackInfo ci) {
         ChatOutputListener.ChatOutputEvent event = new ChatOutputListener.ChatOutputEvent(chatText);
-        EventManager.fire(event);
+        PlaierClient.getEventManager().fire(event);
 
         if (event.isCancelled()) {
             ci.cancel();

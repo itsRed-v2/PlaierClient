@@ -1,6 +1,6 @@
 package net.itsred_v2.plaier.mixin;
 
-import net.itsred_v2.plaier.event.EventManager;
+import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.events.PlayerDeathListener;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientCommonNetworkHandler;
@@ -27,7 +27,7 @@ public abstract class ClientPlayNetworkHandlerMixin extends ClientCommonNetworkH
             at = @At("HEAD"))
     public void onDeathMessage(DeathMessageS2CPacket packet, CallbackInfo ci) {
         // TODO: Check if other player's death triggers this
-        EventManager.fire(PlayerDeathListener.PlayerDeathEvent.INSTANCE);
+        PlaierClient.getEventManager().fire(PlayerDeathListener.PlayerDeathEvent.INSTANCE);
     }
 
 }

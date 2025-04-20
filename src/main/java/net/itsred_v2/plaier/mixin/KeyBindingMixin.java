@@ -1,8 +1,6 @@
 package net.itsred_v2.plaier.mixin;
 
-import java.util.Map;
-
-import net.itsred_v2.plaier.event.EventManager;
+import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.events.KeyListener.KeyEvent;
 import net.itsred_v2.plaier.mixinterface.KeyBindingInterface;
 import net.minecraft.client.option.KeyBinding;
@@ -13,6 +11,8 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.util.Map;
 
 @Mixin(KeyBinding.class)
 public abstract class KeyBindingMixin implements Comparable<KeyBinding>, KeyBindingInterface {
@@ -29,7 +29,7 @@ public abstract class KeyBindingMixin implements Comparable<KeyBinding>, KeyBind
         if (keyBinding == null)
             return;
         KeyEvent event = new KeyEvent(keyBinding, KeyEvent.Method.ON_PRESS, true);
-        EventManager.fire(event);
+        PlaierClient.getEventManager().fire(event);
 
         if (event.isCancelled())
             ci.cancel();
@@ -41,7 +41,7 @@ public abstract class KeyBindingMixin implements Comparable<KeyBinding>, KeyBind
     public void setPressed(boolean pressed, CallbackInfo ci) {
         KeyBinding instance = (KeyBinding) (Object) this;
         KeyEvent event = new KeyEvent(instance, KeyEvent.Method.SET_PRESSED, pressed);
-        EventManager.fire(event);
+        PlaierClient.getEventManager().fire(event);
 
         if (event.isCancelled())
             ci.cancel();

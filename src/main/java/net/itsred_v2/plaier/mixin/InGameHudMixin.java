@@ -1,6 +1,6 @@
 package net.itsred_v2.plaier.mixin;
 
-import net.itsred_v2.plaier.event.EventManager;
+import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.events.GuiRenderListener;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.DebugHud;
@@ -26,7 +26,7 @@ public abstract class InGameHudMixin {
         if (debugHud.shouldShowDebugHud())
             return;
 
-        EventManager.fire(new GuiRenderListener.GuiRenderEvent(context));
+        PlaierClient.getEventManager().fire(new GuiRenderListener.GuiRenderEvent(context));
     }
 
 }

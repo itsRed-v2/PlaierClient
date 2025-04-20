@@ -1,7 +1,7 @@
 package net.itsred_v2.plaier.mixin;
 
 import com.mojang.authlib.GameProfile;
-import net.itsred_v2.plaier.event.EventManager;
+import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.events.AutoJumpListener;
 import net.itsred_v2.plaier.events.UpdateListener;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
@@ -24,7 +24,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
                     target = "Lnet/minecraft/client/network/AbstractClientPlayerEntity;tick()V",
                     ordinal = 0))
     public void onUpdate(CallbackInfo ci) {
-        EventManager.fire(UpdateListener.UpdateEvent.INSTANCE);
+        PlaierClient.getEventManager().fire(UpdateListener.UpdateEvent.INSTANCE);
     }
 
     @Inject(method = "autoJump",
@@ -32,7 +32,7 @@ public abstract class ClientPlayerEntityMixin extends AbstractClientPlayerEntity
             cancellable = true)
     public void autoJump(float dx, float dz, CallbackInfo ci) {
         AutoJumpListener.AutoJumpEvent event = new AutoJumpListener.AutoJumpEvent();
-        EventManager.fire(event);
+        PlaierClient.getEventManager().fire(event);
 
         if (event.isCancelled())
             ci.cancel();

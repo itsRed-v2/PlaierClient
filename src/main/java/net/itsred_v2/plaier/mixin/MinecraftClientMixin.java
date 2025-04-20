@@ -1,6 +1,6 @@
 package net.itsred_v2.plaier.mixin;
 
-import net.itsred_v2.plaier.event.EventManager;
+import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.events.LeaveGameSessionListener;
 import net.itsred_v2.plaier.events.WorldJoinListener;
 import net.minecraft.client.MinecraftClient;
@@ -24,13 +24,13 @@ public abstract class MinecraftClientMixin extends ReentrantThreadExecutor<Runna
     @Inject(method = "disconnect(Lnet/minecraft/client/gui/screen/Screen;Z)V",
             at = @At("HEAD"))
     public void disconnect(Screen disconnectionScreen, boolean transferring, CallbackInfo ci) {
-        EventManager.fire(new LeaveGameSessionListener.LeaveGameSessionEvent());
+        PlaierClient.getEventManager().fire(new LeaveGameSessionListener.LeaveGameSessionEvent());
     }
 
     @Inject(method = "joinWorld",
             at = @At("HEAD"))
     public void joinWorld(ClientWorld world, DownloadingTerrainScreen.WorldEntryReason worldEntryReason, CallbackInfo ci) {
-        EventManager.fire(WorldJoinListener.WorldJoinEvent.INSTANCE);
+        PlaierClient.getEventManager().fire(WorldJoinListener.WorldJoinEvent.INSTANCE);
     }
 
 }

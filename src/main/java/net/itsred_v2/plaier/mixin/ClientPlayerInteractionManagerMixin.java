@@ -1,7 +1,6 @@
 package net.itsred_v2.plaier.mixin;
 
 import net.itsred_v2.plaier.PlaierClient;
-import net.itsred_v2.plaier.event.EventManager;
 import net.itsred_v2.plaier.events.AttackBlockListener;
 import net.itsred_v2.plaier.events.GameModeChangeListener;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
@@ -23,12 +22,12 @@ public abstract class ClientPlayerInteractionManagerMixin {
 
     @Inject(method = "setGameMode", at = @At("HEAD"))
     public void setGameMode(GameMode gameMode, CallbackInfo ci) {
-        EventManager.fire(new GameModeChangeListener.GameModeChangeEvent(gameMode));
+        PlaierClient.getEventManager().fire(new GameModeChangeListener.GameModeChangeEvent(gameMode));
     }
 
     @Inject(method = "setGameModes", at = @At("HEAD"))
     public void setGameModes(GameMode gameMode, GameMode previousGameMode, CallbackInfo ci) {
-        EventManager.fire(new GameModeChangeListener.GameModeChangeEvent(gameMode));
+        PlaierClient.getEventManager().fire(new GameModeChangeListener.GameModeChangeEvent(gameMode));
     }
 
     @Inject(method = "attackBlock", at = @At("HEAD"))
@@ -38,7 +37,7 @@ public abstract class ClientPlayerInteractionManagerMixin {
         if (!PlaierClient.MC.getClientWorld().getWorldBorder().contains(pos))
             return;
 
-        EventManager.fire(new AttackBlockListener.AttackBlockEvent(pos));
+        PlaierClient.getEventManager().fire(new AttackBlockListener.AttackBlockEvent(pos));
     }
 
 }

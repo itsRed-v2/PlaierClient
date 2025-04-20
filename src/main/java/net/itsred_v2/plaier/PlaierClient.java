@@ -30,7 +30,7 @@ public class PlaierClient implements ClientModInitializer {
     public void onInitializeClient() {
         LOGGER.info("Plaier is playing !");
 
-        WorldRenderEvents.BEFORE_DEBUG_RENDER.register(context -> EventManager.fire(new BeforeDebugRenderEvent(context)));
+        WorldRenderEvents.BEFORE_DEBUG_RENDER.register(context -> EVENT_MANAGER.fire(new BeforeDebugRenderEvent(context)));
         EVENT_MANAGER.add(ChatOutputListener.class, new CommandProcessor());
     }
 
