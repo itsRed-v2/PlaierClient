@@ -1,31 +1,14 @@
 package net.itsred_v2.plaier.command;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import net.itsred_v2.plaier.commands.*;
 import net.itsred_v2.plaier.events.ChatOutputListener;
 import net.itsred_v2.plaier.utils.Messenger;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CommandProcessor implements ChatOutputListener {
 
     private static final String COMMAND_TOKEN = ":";
-    public static final Map<String, Command> COMMAND_MAP = new HashMap<>();
-    static {
-        COMMAND_MAP.put("help", new HelpCommand());
-        COMMAND_MAP.put("echo", new EchoCmd());
-        COMMAND_MAP.put("say", new SayCmd());
-        COMMAND_MAP.put("stoptask", new StopTaskCmd());
-        COMMAND_MAP.put("lookat", new LookAtCmd());
-        COMMAND_MAP.put("path", new PathFindCmd());
-        COMMAND_MAP.put("fc", new FreecamCmd());
-        COMMAND_MAP.put("debug", new DebugCmd());
-        COMMAND_MAP.put("autotool", new AutoToolCmd());
-        COMMAND_MAP.put("pin", new PinCmd());
-        COMMAND_MAP.put("overlay", new OverlayCmd());
-    }
 
     @Override
     public void onChatOutput(ChatOutputEvent event) {
@@ -39,7 +22,7 @@ public class CommandProcessor implements ChatOutputListener {
         List<String> args = new ArrayList<>(List.of(message.split(" ")));
 
         String commandName = args.removeFirst();
-        Command cmd = COMMAND_MAP.get(commandName);
+        Command cmd = Commands.getByName(commandName);
 
         if (cmd == null) {
             Messenger.chat("§cUnknown command: §6%s", commandName);

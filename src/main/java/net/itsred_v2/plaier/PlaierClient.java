@@ -3,6 +3,7 @@ package net.itsred_v2.plaier;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.itsred_v2.plaier.command.CommandProcessor;
+import net.itsred_v2.plaier.command.Commands;
 import net.itsred_v2.plaier.event.EventManager;
 import net.itsred_v2.plaier.events.BeforeDebugRenderListener.BeforeDebugRenderEvent;
 import net.itsred_v2.plaier.events.ChatOutputListener;
@@ -32,6 +33,8 @@ public class PlaierClient implements ClientModInitializer {
 
         WorldRenderEvents.BEFORE_DEBUG_RENDER.register(context -> EVENT_MANAGER.fire(new BeforeDebugRenderEvent(context)));
         EVENT_MANAGER.add(ChatOutputListener.class, new CommandProcessor());
+
+        Commands.initializeCommandMap();
     }
 
     public static EventManager getEventManager() {

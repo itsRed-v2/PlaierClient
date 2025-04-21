@@ -1,7 +1,5 @@
 package net.itsred_v2.plaier.commands;
 
-import java.util.List;
-
 import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.command.Command;
 import net.itsred_v2.plaier.task.Task;
@@ -9,12 +7,14 @@ import net.itsred_v2.plaier.tasks.WalkPathFindTask;
 import net.itsred_v2.plaier.utils.Messenger;
 import net.minecraft.util.math.BlockPos;
 
-public class PathFindCmd implements Command {
+import java.util.List;
+
+public class PathFindCmd extends Command {
 
     @Override
     public void onCommand(List<String> args) {
         if (args.size() != 3) {
-            Messenger.chat("§cInvalid syntax.");
+            this.sendSyntaxErrorMessage();
             return;
         }
 
@@ -35,6 +35,21 @@ public class PathFindCmd implements Command {
         if (!success) {
             Messenger.chat("§cAnother task is already running.");
         }
+    }
+
+    @Override
+    public List<String> getHelp() {
+        return List.of("Tries to find a path to the given destination and if one is found, walks to it.");
+    }
+
+    @Override
+    public List<String> getUse() {
+        return List.of(":path <x> <y> <z>");
+    }
+
+    @Override
+    public List<String> getNames() {
+        return List.of("path");
     }
 
 }

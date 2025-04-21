@@ -6,15 +6,14 @@ import net.itsred_v2.plaier.utils.Messenger;
 
 import java.util.List;
 
-public class FreecamCmd implements Command {
+public class FreecamCmd extends Command {
 
     private final FreecamHack freecamHack = new FreecamHack();
 
     @Override
     public void onCommand(List<String> args) {
         if (args.size() > 1) {
-            Messenger.chat("§cInvalid syntax.");
-            sendHelp();
+            this.sendSyntaxErrorMessage();
             return;
         }
 
@@ -26,7 +25,7 @@ public class FreecamCmd implements Command {
                 switchControl();
             } else {
                 Messenger.chat("§cUnknown argument: §e%s", firstArg);
-                sendHelp();
+                this.sendUse();
             }
         }
     }
@@ -54,10 +53,27 @@ public class FreecamCmd implements Command {
         }
     }
 
-    private void sendHelp() {
-        Messenger.chat("Use:");
-        Messenger.chat("§e:fc §7- §renable / disable freecam.");
-        Messenger.chat("§e:fc switch §ror §e:fc s §7- §rswitch between camera control and player control.");
+    @Override
+    public List<String> getHelp() {
+        return List.of(
+                "Toggles the Freecam Hack.",
+                "Passing 'switch' or just 's' switches between camera controls and " +
+                        "player controls, all while keeping freecam enabled."
+        );
+    }
+
+    @Override
+    public List<String> getUse() {
+        return List.of(
+                ":freecam",
+                ":freecam switch",
+                ":freecam s"
+        );
+    }
+
+    @Override
+    public List<String> getNames() {
+        return List.of("freecam", "fc");
     }
 
 }

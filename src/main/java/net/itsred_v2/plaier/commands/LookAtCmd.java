@@ -1,19 +1,18 @@
 package net.itsred_v2.plaier.commands;
 
-import java.util.List;
-
 import net.itsred_v2.plaier.command.Command;
-import net.itsred_v2.plaier.utils.Messenger;
 import net.itsred_v2.plaier.utils.control.RotationUtils;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.NotNull;
 
-public class LookAtCmd implements Command {
+import java.util.List;
+
+public class LookAtCmd extends Command {
 
     @Override
     public void onCommand(@NotNull List<String> args) {
         if (args.size() != 3) {
-            Messenger.chat("§cInvalid syntax.");
+            this.sendSyntaxErrorMessage();
             return;
         }
 
@@ -24,6 +23,21 @@ public class LookAtCmd implements Command {
         Vec3d pos = new Vec3d(posX, posY, posZ);
         RotationUtils.facePos(pos);
 
+    }
+
+    @Override
+    public List<String> getHelp() {
+        return List.of("Changes your rotation so you are looking precisely towards the given position");
+    }
+
+    @Override
+    public List<String> getUse() {
+        return List.of(":lookat <x> <y> <z>");
+    }
+
+    @Override
+    public List<String> getNames() {
+        return List.of("lookat");
     }
 
 }

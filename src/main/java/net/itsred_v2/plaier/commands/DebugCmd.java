@@ -1,18 +1,17 @@
 package net.itsred_v2.plaier.commands;
 
-import java.util.List;
-
 import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.command.Command;
 import net.itsred_v2.plaier.utils.Messenger;
 
-public class DebugCmd implements Command {
+import java.util.List;
+
+public class DebugCmd extends Command {
 
     @Override
     public void onCommand(List<String> args) {
         if (args.size() != 2) {
-            Messenger.chat("§cSyntax:");
-            Messenger.chat("§cdebug <enable | disable> <debugOption>");
+            this.sendSyntaxErrorMessage();
             return;
         }
 
@@ -21,7 +20,7 @@ public class DebugCmd implements Command {
             case "enable" -> enable = true;
             case "disable" -> enable = false;
             default -> {
-                Messenger.chat("§cUnknown argument: §6%s§c. Try \"enable\" of \"disable\".", args.get(0));
+                Messenger.chat("§cUnknown argument: §6%s§c. Try \"enable\" or \"disable\".", args.getFirst());
                 return;
             }
         }
@@ -42,6 +41,21 @@ public class DebugCmd implements Command {
         } else {
             Messenger.chat("%s debug option \"%s\"", enable ? "Enabled" : "Disabled", args.get(1));
         }
+    }
+
+    @Override
+    public List<String> getHelp() {
+        return List.of("Used to enable/disable debug options.");
+    }
+
+    @Override
+    public List<String> getUse() {
+        return List.of(":debug <enable | disable> <debugOption>");
+    }
+
+    @Override
+    public List<String> getNames() {
+        return List.of("debug");
     }
 
 }

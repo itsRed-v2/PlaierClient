@@ -1,9 +1,5 @@
 package net.itsred_v2.plaier.commands;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
-
 import com.mojang.authlib.GameProfile;
 import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.command.Command;
@@ -12,14 +8,18 @@ import net.itsred_v2.plaier.utils.Messenger;
 import net.minecraft.client.network.PlayerListEntry;
 import net.minecraft.util.math.BlockPos;
 
-public class PinCmd implements Command {
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
+
+public class PinCmd extends Command {
 
     private final PinHack pinHack = new PinHack();
 
     @Override
     public void onCommand(List<String> args) {
         if (args.size() != 1 && args.size() != 3) {
-            Messenger.chat("§cInvalid syntax.");
+            this.sendSyntaxErrorMessage();
             return;
         }
 
@@ -63,6 +63,28 @@ public class PinCmd implements Command {
                 Messenger.chat("Pinned %d %d %d.", posX, posY, posZ);
             }
         }
+    }
+
+    @Override
+    public List<String> getHelp() {
+        return List.of(
+                "Allows pinning players or coordinates.",
+                "Pinning draws a line from your crosshair to the projected position of the target on your screen, " +
+                        "so you always know in which direction the target is."
+        );
+    }
+
+    @Override
+    public List<String> getUse() {
+        return List.of(
+                ":pin <player>",
+                ":pin <x> <y> <z>"
+        );
+    }
+
+    @Override
+    public List<String> getNames() {
+        return List.of("pin");
     }
 
 }

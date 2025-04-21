@@ -6,7 +6,7 @@ import net.itsred_v2.plaier.utils.Messenger;
 
 import java.util.List;
 
-public class AutoToolCmd implements Command {
+public class AutoToolCmd extends Command {
 
     private final AutoToolHack autoTool = new AutoToolHack();
 
@@ -19,6 +19,24 @@ public class AutoToolCmd implements Command {
             Messenger.chat("Enabled AutoTool.");
             autoTool.enable();
         }
+    }
+
+    @Override
+    public List<String> getHelp() {
+        return List.of(
+                "Enables the AutoTool hack.",
+                "When attacking a block, this hack automatically equips the most appropriate tool from the inventory."
+        );
+    }
+
+    @Override
+    public List<String> getUse() {
+        return List.of(":autotool");
+    }
+
+    @Override
+    public List<String> getNames() {
+        return List.of("autotool");
     }
 
 }
