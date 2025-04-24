@@ -5,6 +5,7 @@ import net.itsred_v2.plaier.command.Command;
 import net.itsred_v2.plaier.command.Commands;
 import net.itsred_v2.plaier.utils.Messenger;
 
+import java.util.Collection;
 import java.util.List;
 
 public class HelpCmd extends Command {
@@ -22,6 +23,15 @@ public class HelpCmd extends Command {
             } else {
                 sendHelp(cmd);
             }
+        }
+    }
+
+    @Override
+    public Collection<String> onTabComplete(List<String> args) {
+        if (args.size() == 1) {
+            return Commands.COMMAND_MAP.keySet();
+        } else {
+            return List.of();
         }
     }
 

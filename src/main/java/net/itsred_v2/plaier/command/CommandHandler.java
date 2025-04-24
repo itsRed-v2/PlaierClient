@@ -6,9 +6,9 @@ import net.itsred_v2.plaier.utils.Messenger;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CommandProcessor implements ChatOutputListener {
+public class CommandHandler implements ChatOutputListener {
 
-    private static final String COMMAND_TOKEN = ":";
+    public static final String COMMAND_TOKEN = ":";
 
     @Override
     public void onChatOutput(ChatOutputEvent event) {

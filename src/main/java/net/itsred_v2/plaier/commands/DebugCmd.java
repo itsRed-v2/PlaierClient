@@ -4,6 +4,7 @@ import net.itsred_v2.plaier.PlaierClient;
 import net.itsred_v2.plaier.command.Command;
 import net.itsred_v2.plaier.utils.Messenger;
 
+import java.util.Collection;
 import java.util.List;
 
 public class DebugCmd extends Command {
@@ -41,6 +42,15 @@ public class DebugCmd extends Command {
         } else {
             Messenger.chat("%s debug option \"%s\"", enable ? "Enabled" : "Disabled", args.get(1));
         }
+    }
+
+    @Override
+    public Collection<String> onTabComplete(List<String> args) {
+        return switch (args.size()) {
+            case 1 -> List.of("enable", "disable");
+            case 2 -> List.of("pressedKeys", "targetNode", "all");
+            default -> List.of();
+        };
     }
 
     @Override

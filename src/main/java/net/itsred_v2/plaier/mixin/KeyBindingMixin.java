@@ -8,6 +8,7 @@ import net.minecraft.client.util.InputUtil;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -47,6 +48,7 @@ public abstract class KeyBindingMixin implements Comparable<KeyBinding>, KeyBind
             ci.cancel();
     }
 
+    @Unique
     @Override
     public void plaierClient_setPressedBypass(boolean pressed) {
         this.pressed = pressed;

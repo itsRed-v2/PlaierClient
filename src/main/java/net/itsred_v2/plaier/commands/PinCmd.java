@@ -66,6 +66,19 @@ public class PinCmd extends Command {
     }
 
     @Override
+    public Collection<String> onTabComplete(List<String> args) {
+        if (args.size() == 1) {
+            return PlaierClient.MC.getNetworkHandler()
+                    .getPlayerList()
+                    .stream()
+                    .map(playerListEntry -> playerListEntry.getProfile().getName())
+                    .toList();
+        } else {
+            return List.of();
+        }
+    }
+
+    @Override
     public List<String> getHelp() {
         return List.of(
                 "Allows pinning players or coordinates.",

@@ -14,7 +14,9 @@
     "CameraMixin",
     "MouseMixin",
     "KeyBindingMixin",
-    "ClientPlayerInteractionManagerMixin"
+    "ClientPlayerInteractionManagerMixin",
+    "ClientCommandSourceMixin",
+    "ChatInputSuggestorMixin"
   ],
   "injectors": {
     "defaultRequire": 1

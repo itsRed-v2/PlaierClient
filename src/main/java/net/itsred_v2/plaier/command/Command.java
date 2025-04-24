@@ -2,11 +2,16 @@ package net.itsred_v2.plaier.command;
 
 import net.itsred_v2.plaier.utils.Messenger;
 
+import java.util.Collection;
 import java.util.List;
 
 public abstract class Command {
 
     public abstract void onCommand(List<String> args);
+
+    public Collection<String> onTabComplete(List<String> args) {
+        return List.of();
+    }
 
     public abstract List<String> getHelp();
 

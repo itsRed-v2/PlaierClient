@@ -4,6 +4,7 @@ import net.itsred_v2.plaier.command.Command;
 import net.itsred_v2.plaier.hacks.FreecamHack;
 import net.itsred_v2.plaier.utils.Messenger;
 
+import java.util.Collection;
 import java.util.List;
 
 public class FreecamCmd extends Command {
@@ -27,6 +28,15 @@ public class FreecamCmd extends Command {
                 Messenger.chat("§cUnknown argument: §e%s", firstArg);
                 this.sendUse();
             }
+        }
+    }
+
+    @Override
+    public Collection<String> onTabComplete(List<String> args) {
+        if (args.size() == 1) {
+            return List.of("switch");
+        } else {
+            return List.of();
         }
     }
 
